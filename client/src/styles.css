@@ -458,6 +458,87 @@ body, html, #root {
   color: var(--primary);
 }
 
+/* ── Language toggle ── */
+.lang-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: var(--transition);
+}
+.lang-toggle-btn:hover {
+  border-color: var(--primary);
+  color: var(--text-main);
+}
+.lang-toggle-btn .lang-active {
+  color: var(--primary);
+  font-weight: 800;
+}
+.lang-toggle-btn .lang-divider {
+  opacity: 0.35;
+}
+
+/* Login top controls */
+.login-top-controls {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login-lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+.login-lang-toggle:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.login-lang-toggle .lang-active {
+  color: #fff;
+  font-weight: 800;
+}
+.login-lang-toggle .lang-divider {
+  opacity: 0.35;
+}
+
+[data-theme='light'] .login-lang-toggle {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.12);
+  color: rgba(0,0,0,0.5);
+}
+[data-theme='light'] .login-lang-toggle:hover {
+  background: rgba(0,0,0,0.1);
+  color: rgba(0,0,0,0.8);
+}
+[data-theme='light'] .login-lang-toggle .lang-active {
+  color: rgba(0,0,0,0.85);
+}
+
 .ctrl-btn .notif-dot {
   position: absolute;
   top: 6px;

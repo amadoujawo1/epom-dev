@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
-const TYPE_OPTIONS = [
-  { value: 'meeting', label: 'Meeting', icon: '👥' },
-  { value: 'briefing', label: 'Briefing', icon: '📢' },
-  { value: 'travel', label: 'Travel', icon: '✈️' },
-  { value: 'training', label: 'Training', icon: '🎓' },
-  { value: 'other', label: 'Other', icon: '📅' },
-];
-
-const PRIORITY_OPTIONS = [
-  { value: 'Low', color: '#22c55e' },
-  { value: 'Medium', color: '#f59e0b' },
-  { value: 'High', color: '#ef4444' },
-  { value: 'Critical', color: '#7c3aed' },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 function parseAttendees(raw) {
   if (!raw) return '';
   try {
     const arr = JSON.parse(raw);
     return Array.isArray(arr) ? arr.join(', ') : String(raw);
-  } catch {
-    return String(raw);
-  }
+  } catch { return String(raw); }
 }
 
 function splitAttendees(str) {
@@ -30,20 +14,29 @@ function splitAttendees(str) {
 }
 
 export default function EventModal({ isOpen, onClose, onSave, event }) {
+  const { t } = useLanguage();
   const isEdit = !!event;
+
+  const TYPE_OPTIONS = [
+    { value: 'meeting',  label: t('type_meeting'),  icon: '👥' },
+    { value: 'briefing', label: t('type_briefing'), icon: '📢' },
+    { value: 'travel',   label: t('type_travel'),   icon: '✈️' },
+    { value: 'training', label: t('type_training'), icon: '🎓' },
+    { value: 'other',    label: t('type_other'),    icon: '📅' },
+  ];
+
+  const PRIORITY_OPTIONS = [
+    { value: 'Low',      labelKey: 'priority_low',      color: '#22c55e' },
+    { value: 'Medium',   labelKey: 'priority_medium',   color: '#f59e0b' },
+    { value: 'High',     labelKey: 'priority_high',     color: '#ef4444' },
+    { value: 'Critical', labelKey: 'priority_critical', color: '#7c3aed' },
+  ];
+
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    type: 'meeting',
-    recurrence: 'none',
-    location: '',
-    meeting_link: '',
-    priority: 'Medium',
-    mandatory_attendees: '',
-    optional_attendees: '',
+    title: '', description: '', date: '', startTime: '', endTime: '',
+    type: 'meeting', recurrence: 'none', location: '',
+    meeting_link: '', priority: 'Medium',
+    mandatory_attendees: '', optional_attendees: '',
   });
   const [activeSection, setActiveSection] = useState('details');
 
@@ -73,9 +66,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.date || !form.startTime || !form.endTime) {
-      return;
-    }
+    if (!form.date || !form.startTime || !form.endTime) return;
     const payload = {
       title: form.title,
       description: form.description,
@@ -95,7 +86,8 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
   if (!isOpen) return null;
 
   const selectedType = TYPE_OPTIONS.find(t => t.value === form.type) || TYPE_OPTIONS[0];
-  const selectedPriority = PRIORITY_OPTIONS.find(p => p.value === form.priority) || PRIORITY_OPTIONS[1];
+  const mandList = splitAttendees(form.mandatory_attendees);
+  const optList = splitAttendees(form.optional_attendees);
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
@@ -106,16 +98,14 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
           <div className="modal-header-info">
             <div className="modal-header-icon">{selectedType.icon}</div>
             <div>
-              <div className="modal-title">{isEdit ? 'Edit Event' : 'Establish Meeting'}</div>
-              <div className="modal-subtitle">
-                {isEdit ? 'Update event details below' : 'Schedule a new tactical event'}
-              </div>
+              <div className="modal-title">{isEdit ? t('event_edit_title') : t('event_new_title')}</div>
+              <div className="modal-subtitle">{isEdit ? t('event_edit_sub') : t('event_new_sub')}</div>
             </div>
           </div>
           <button className="modal-close-btn" onClick={onClose} type="button">✕</button>
         </div>
 
-        {/* Section tabs */}
+        {/* Tabs */}
         <div className="event-modal-tabs">
           {['details', 'people', 'notes'].map(tab => (
             <button
@@ -124,9 +114,9 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
               className={`event-modal-tab ${activeSection === tab ? 'active' : ''}`}
               onClick={() => setActiveSection(tab)}
             >
-              {tab === 'details' && '📋 Details'}
-              {tab === 'people' && '👥 Attendees'}
-              {tab === 'notes' && '📝 Notes'}
+              {tab === 'details' && t('tab_details')}
+              {tab === 'people' && t('tab_people')}
+              {tab === 'notes' && t('tab_notes')}
             </button>
           ))}
         </div>
@@ -134,16 +124,14 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
 
-            {/* ── DETAILS SECTION ── */}
+            {/* ── DETAILS ── */}
             {activeSection === 'details' && (
               <div className="event-section">
-
-                {/* Title */}
                 <div className="form-group">
-                  <label>Event Title <span className="req">*</span></label>
+                  <label>{t('event_title_label')} <span className="req">*</span></label>
                   <input
                     name="title"
-                    placeholder="e.g. Weekly Operations Briefing"
+                    placeholder={t('event_title_placeholder')}
                     value={form.title}
                     onChange={handleChange}
                     required
@@ -151,31 +139,29 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                   />
                 </div>
 
-                {/* Type pills */}
                 <div className="form-group">
-                  <label>Event Type</label>
+                  <label>{t('event_type_label')}</label>
                   <div className="type-pill-group">
-                    {TYPE_OPTIONS.map(t => (
+                    {TYPE_OPTIONS.map(opt => (
                       <button
-                        key={t.value}
+                        key={opt.value}
                         type="button"
-                        className={`type-pill ${form.type === t.value ? 'active' : ''}`}
-                        onClick={() => setForm(prev => ({ ...prev, type: t.value }))}
+                        className={`type-pill ${form.type === opt.value ? 'active' : ''}`}
+                        onClick={() => setForm(prev => ({ ...prev, type: opt.value }))}
                       >
-                        {t.icon} {t.label}
+                        {opt.icon} {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Date + Priority */}
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Date <span className="req">*</span></label>
+                    <label>{t('event_date_label')} <span className="req">*</span></label>
                     <input type="date" name="date" value={form.date} onChange={handleChange} required />
                   </div>
                   <div className="form-group">
-                    <label>Priority</label>
+                    <label>{t('priority')}</label>
                     <div className="priority-pill-group">
                       {PRIORITY_OPTIONS.map(p => (
                         <button
@@ -185,71 +171,55 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                           style={{ '--p-color': p.color }}
                           onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
                         >
-                          {p.value}
+                          {t(p.labelKey)}
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Start + End time */}
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Start Time <span className="req">*</span></label>
+                    <label>{t('event_start_time')} <span className="req">*</span></label>
                     <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
                   </div>
                   <div className="form-group">
-                    <label>End Time <span className="req">*</span></label>
+                    <label>{t('event_end_time')} <span className="req">*</span></label>
                     <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
                   </div>
                 </div>
 
-                {/* Recurrence */}
                 <div className="form-group">
-                  <label>Recurrence</label>
+                  <label>{t('event_recurrence')}</label>
                   <select name="recurrence" value={form.recurrence} onChange={handleChange}>
-                    <option value="none">Does not repeat</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
+                    <option value="none">{t('recurrence_none')}</option>
+                    <option value="daily">{t('recurrence_daily')}</option>
+                    <option value="weekly">{t('recurrence_weekly')}</option>
+                    <option value="monthly">{t('recurrence_monthly')}</option>
                   </select>
                 </div>
 
-                {/* Location + Link */}
                 <div className="form-group">
-                  <label>Location</label>
-                  <input
-                    name="location"
-                    placeholder="Conference room, building, or address…"
-                    value={form.location}
-                    onChange={handleChange}
-                  />
+                  <label>{t('location')}</label>
+                  <input name="location" placeholder={t('event_location_placeholder')} value={form.location} onChange={handleChange} />
                 </div>
 
                 <div className="form-group">
-                  <label>Meeting Link</label>
-                  <input
-                    name="meeting_link"
-                    placeholder="https://meet.example.com/…"
-                    value={form.meeting_link}
-                    onChange={handleChange}
-                    type="url"
-                  />
+                  <label>{t('event_link_label')}</label>
+                  <input name="meeting_link" placeholder={t('event_link_placeholder')} value={form.meeting_link} onChange={handleChange} type="url" />
                 </div>
               </div>
             )}
 
-            {/* ── PEOPLE SECTION ── */}
+            {/* ── PEOPLE ── */}
             {activeSection === 'people' && (
               <div className="event-section">
-                <div className="attendees-hint">
-                  Enter names or email addresses separated by commas.
-                </div>
+                <div className="attendees-hint">{t('attendees_hint')}</div>
 
                 <div className="form-group">
                   <label>
                     <span className="attendee-label-dot" style={{ background: '#ef4444' }}></span>
-                    Mandatory Attendees
+                    {t('mandatory_attendees')}
                   </label>
                   <textarea
                     name="mandatory_attendees"
@@ -258,11 +228,9 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                     onChange={handleChange}
                     rows={3}
                   />
-                  {form.mandatory_attendees && (
+                  {mandList.length > 0 && (
                     <div className="attendee-chips">
-                      {splitAttendees(form.mandatory_attendees).map((a, i) => (
-                        <span key={i} className="attendee-chip mandatory">{a}</span>
-                      ))}
+                      {mandList.map((a, i) => <span key={i} className="attendee-chip mandatory">{a}</span>)}
                     </div>
                   )}
                 </div>
@@ -270,7 +238,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                 <div className="form-group">
                   <label>
                     <span className="attendee-label-dot" style={{ background: '#6366f1' }}></span>
-                    Optional Attendees
+                    {t('optional_attendees')}
                   </label>
                   <textarea
                     name="optional_attendees"
@@ -279,33 +247,29 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                     onChange={handleChange}
                     rows={3}
                   />
-                  {form.optional_attendees && (
+                  {optList.length > 0 && (
                     <div className="attendee-chips">
-                      {splitAttendees(form.optional_attendees).map((a, i) => (
-                        <span key={i} className="attendee-chip optional">{a}</span>
-                      ))}
+                      {optList.map((a, i) => <span key={i} className="attendee-chip optional">{a}</span>)}
                     </div>
                   )}
                 </div>
 
-                {(form.mandatory_attendees || form.optional_attendees) && (
+                {(mandList.length + optList.length) > 0 && (
                   <div className="attendee-summary">
-                    <span>
-                      {splitAttendees(form.mandatory_attendees).length + splitAttendees(form.optional_attendees).length} total attendee(s)
-                    </span>
+                    {t('attendee_total', { n: mandList.length + optList.length })}
                   </div>
                 )}
               </div>
             )}
 
-            {/* ── NOTES SECTION ── */}
+            {/* ── NOTES ── */}
             {activeSection === 'notes' && (
               <div className="event-section">
                 <div className="form-group">
-                  <label>Agenda / Notes</label>
+                  <label>{t('agenda_label')}</label>
                   <textarea
                     name="description"
-                    placeholder="Outline the agenda, objectives, or background information…"
+                    placeholder={t('agenda_placeholder')}
                     value={form.description}
                     onChange={handleChange}
                     rows={10}
@@ -318,9 +282,9 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
 
           {/* Footer */}
           <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn btn-outline" onClick={onClose}>{t('cancel')}</button>
             <button type="submit" className="btn btn-primary">
-              {isEdit ? '💾 Save Changes' : '✚ Create Event'}
+              {isEdit ? t('save_changes') : t('create_event_btn')}
             </button>
           </div>
         </form>
