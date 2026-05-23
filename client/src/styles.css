@@ -1161,6 +1161,148 @@ label {
   flex-shrink: 0;
 }
 
+/* ── Event Modal Enhancements ── */
+.event-modal-panel { max-width: 580px; }
+
+.event-modal-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 10px 16px 0;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.event-modal-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -1px;
+}
+
+.event-modal-tab:hover { color: var(--text-primary); background: var(--hover-bg); }
+.event-modal-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: transparent; }
+
+.event-section { display: flex; flex-direction: column; gap: 14px; }
+
+/* Type pills */
+.type-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.type-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.type-pill:hover { border-color: var(--primary); color: var(--primary); }
+.type-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+/* Priority pills */
+.priority-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.priority-pill {
+  padding: 4px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.priority-pill:hover { border-color: var(--p-color); color: var(--p-color); }
+.priority-pill.active {
+  background: var(--p-color);
+  border-color: var(--p-color);
+  color: #fff;
+}
+
+/* Attendees */
+.attendees-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+
+.attendee-label-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.attendee-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.attendee-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.attendee-chip.mandatory {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.attendee-chip.optional {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.attendee-summary {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
 /* ═══════════════════════════════════════
    CALENDAR
 ═══════════════════════════════════════ */

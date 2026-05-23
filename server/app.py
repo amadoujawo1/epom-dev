@@ -1113,6 +1113,8 @@ def create_app():
             "id": e.id, "title": e.title, "description": e.description,
             "start_time": e.start_time.isoformat(), "end_time": e.end_time.isoformat(),
             "priority": e.priority,
+            "type": e.type or 'meeting',
+            "recurrence": e.recurrence or 'none',
             "mandatory_attendees": e.mandatory_attendees,
             "optional_attendees": e.optional_attendees,
             "location": e.location,
@@ -1150,6 +1152,8 @@ def create_app():
                 start_time=start_time,
                 end_time=end_time,
                 priority=data.get('priority', 'Medium'),
+                type=data.get('type', 'meeting'),
+                recurrence=data.get('recurrence', 'none'),
                 user_id=int(current_user_id),
                 mandatory_attendees=json.dumps(data.get('mandatory_attendees', [])),
                 optional_attendees=json.dumps(data.get('optional_attendees', [])),
@@ -1169,6 +1173,7 @@ def create_app():
         event = Event.query.get_or_404(event_id)
         data = request.json
         try:
+            import json as _json
             if 'title' in data:
                 event.title = data['title']
             if 'description' in data:
@@ -1179,6 +1184,18 @@ def create_app():
                 event.end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
             if 'priority' in data:
                 event.priority = data['priority']
+            if 'type' in data:
+                event.type = data['type']
+            if 'recurrence' in data:
+                event.recurrence = data['recurrence']
+            if 'location' in data:
+                event.location = data['location']
+            if 'meeting_link' in data:
+                event.meeting_link = data['meeting_link']
+            if 'mandatory_attendees' in data:
+                event.mandatory_attendees = _json.dumps(data['mandatory_attendees'])
+            if 'optional_attendees' in data:
+                event.optional_attendees = _json.dumps(data['optional_attendees'])
             db.session.commit()
             return jsonify({"message": "Event updated successfully"}), 200
         except Exception as e:
