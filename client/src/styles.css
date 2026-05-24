@@ -2848,6 +2848,56 @@ label {
     margin-top: 12px;
     padding-top: 16px !important;
   }
+
+  /* Personnel Modal Responsive Enhancements */
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .personnel-modal-scroll {
+    padding: 16px;
+  }
+
+  .avatar-preview-row {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 16px;
+  }
+
+  .avatar-preview-info {
+    text-align: center;
+  }
+
+  .field-group {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .field-icon {
+    display: none; /* Hide icons on mobile to save space */
+  }
+
+  .field-inner {
+    gap: 2px;
+  }
+
+  .modal-header-bar {
+    padding: 14px 16px;
+  }
+
+  .modal-title {
+    font-size: var(--fs-base);
+  }
+
+  .modal-subtitle {
+    font-size: var(--fs-2xs);
+  }
+
+  .status-toggle-group {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
 /* E-Action Mobile Responsiveness */
