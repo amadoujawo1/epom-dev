@@ -2594,10 +2594,36 @@ label {
   cursor: pointer;
   border-radius: 8px;
   transition: var(--transition);
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger-btn svg {
+  width: 24px;
+  height: 24px;
 }
 
 .hamburger-btn:hover {
   background: var(--bg-secondary);
+}
+
+.sidebar-mobile-header {
+  display: none;
+  padding: 16px;
+  justify-content: flex-end;
+}
+
+.btn-close-sidebar {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.btn-close-sidebar:hover {
+  color: #fff;
 }
 
 .sidebar-overlay {
@@ -2616,6 +2642,8 @@ label {
 
 @media (max-width: 1100px) {
   .hamburger-btn { display: flex; }
+  
+  .sidebar-mobile-header { display: flex; }
   
   .sidebar {
     position: fixed;

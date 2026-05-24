@@ -165,6 +165,9 @@ export default function App() {
 
       {/* ── Sidebar ── */}
       <aside className={`sidebar ${isSidebarOpen ? 'show' : ''}`}>
+        <div className="sidebar-mobile-header">
+          <button className="btn-close-sidebar" onClick={() => setIsSidebarOpen(false)}>✕</button>
+        </div>
         <div className="sidebar-top">
           <div className="brand">
             <div className="logo-box">
