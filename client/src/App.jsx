@@ -38,6 +38,7 @@ export default function App() {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [userNotifications, setUserNotifications] = useState([])
   const [showNotifPanel, setShowNotifPanel] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -158,9 +159,12 @@ export default function App() {
     : t('ai_proactive')
 
   return (
-    <div className="app">
+    <div className={`app ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      {/* ── Mobile Overlay ── */}
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+
       {/* ── Sidebar ── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarOpen ? 'show' : ''}`}>
         <div className="sidebar-top">
           <div className="brand">
             <div className="logo-box">
@@ -180,7 +184,7 @@ export default function App() {
             <a
               key={item.id}
               className={page === item.id ? 'active' : ''}
-              onClick={() => setPage(item.id)}
+              onClick={() => { setPage(item.id); setIsSidebarOpen(false); }}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
@@ -191,7 +195,7 @@ export default function App() {
         <div className="sidebar-footer">
           <div
             className="user-card"
-            onClick={() => setShowProfile(true)}
+            onClick={() => { setShowProfile(true); setIsSidebarOpen(false); }}
             title={t('profile')}
             role="button"
             tabIndex={0}
@@ -218,7 +222,10 @@ export default function App() {
       {/* ── Main ── */}
       <main className="main">
         <header className="topbar">
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <div className="page-title">{PAGE_NAMES[page]}</div>
           </div>
           <div className="search-container">
@@ -437,7 +444,7 @@ export default function App() {
                       <button className="btn btn-outline btn-sm" onClick={() => setPage('eaction')}>{t('view_all_actions')}</button>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                  <div className="op-status-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                     {[
                       { labelKey: 'status_pending', val: stats?.action_stats?.pending ?? 0, color: '#6366f1', bg: 'rgba(99,102,241,0.08)' },
                       { labelKey: 'status_in_progress', val: stats?.action_stats?.in_progress ?? 0, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },

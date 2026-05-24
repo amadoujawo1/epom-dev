@@ -2579,3 +2579,142 @@ label {
   border-color: var(--primary);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE OVERRIDES
+═══════════════════════════════════════ */
+
+/* Mobile Hamburger & Sidebar Overlay */
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.hamburger-btn:hover {
+  background: var(--bg-secondary);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 1100px) {
+  .hamburger-btn { display: flex; }
+  
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sidebar.show {
+    transform: translateX(280px);
+  }
+  
+  .main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .dashboard-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card { grid-column: span 1 !important; }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .search-container {
+    display: none; /* Hide main search on small mobile to save space */
+  }
+
+  .dashboard-summary {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dashboard-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .progress-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .op-status-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .modal-panel {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-controls .lang-toggle-btn {
+    display: none; /* Hide lang toggle on tiny screens */
+  }
+  
+  .page-title {
+    font-size: 16px;
+  }
+
+  .op-status-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .summary-card {
+    padding: 12px;
+  }
+  
+  .summary-val {
+    font-size: 20px;
+  }
+}
