@@ -115,10 +115,10 @@ export default function EAction({ searchQuery, notify }) {
       </div>
 
       {/* Main Container */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', borderRadius: '24px' }}>
+      <div className="card eaction-main-card" style={{ padding: '0', overflow: 'hidden', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', borderRadius: '24px' }}>
         {/* Header Section */}
-        <div style={{ padding: '32px 32px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div className="eaction-header-section" style={{ padding: '32px 32px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
             <h2 style={{ margin: 0, fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>
               {t('active_decisions_actions')}
             </h2>
@@ -127,45 +127,45 @@ export default function EAction({ searchQuery, notify }) {
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="search-container" style={{ maxWidth: '320px', margin: 0 }}>
+          <div className="eaction-controls" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div className="search-container eaction-search" style={{ maxWidth: '320px', margin: 0, flex: '1 1 300px' }}>
               <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input 
                 placeholder={t('search_tasks_projects')} 
                 value={searchQuery || localSearch} 
                 onChange={e => setLocalSearch(e.target.value)} 
-                style={{ background: '#f8fafc', borderRadius: '12px', height: '48px', paddingLeft: '44px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)' }}
+                style={{ background: '#f8fafc', borderRadius: '12px', height: '48px', paddingLeft: '44px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)', width: '100%' }}
               />
             </div>
             
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="eaction-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button 
-                className="btn btn-primary" 
+                className="btn btn-primary new-directive-btn" 
                 onClick={() => setShowForm(true)}
                 style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
               >
-                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> {t('new_directive').toUpperCase()}
+                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">{t('new_directive').toUpperCase()}</span><span className="btn-text-mobile">{t('add_short') || 'ADD'}</span>
               </button>
 
               <button 
-                className="btn" 
+                className="btn audit-report-btn" 
                 onClick={fetchReport}
                 style={{ background: '#fff', color: '#0f172a', borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                {t('audit_report').toUpperCase()}
+                <span className="btn-text-desktop">{t('audit_report').toUpperCase()}</span><span className="btn-text-mobile">{t('report_short') || 'REPORT'}</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* List Header & Body */}
-        <div style={{ padding: '0 0 32px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <div className="eaction-table-wrapper" style={{ padding: '0 0 32px' }}>
+          <table className="eaction-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
                 {['directives_projects', 'ownership', 'timeline', 'current_status', 'administrative'].map(col => (
-                  <th key={col} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  <th key={col} className={`col-${col.replace(/_/g, '-')}`} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
                     {t(col)}
                   </th>
                 ))}
@@ -184,25 +184,27 @@ export default function EAction({ searchQuery, notify }) {
                   const canModify = isAdmin || (user?.id === a.assigned_to);
 
                   return (
-                    <tr key={a.id} className="action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }}>
-                      <td style={{ padding: '20px 32px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)', marginBottom: '4px', textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.6 : 1 }}>{a.title}</div>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>{a.project_name || 'General Operations'}</div>
+                    <tr key={a.id} className="eaction-row action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }}>
+                      <td className="col-directives-projects" style={{ padding: '20px 32px' }}>
+                        <div className="directive-title" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)', marginBottom: '4px', textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.6 : 1 }}>{a.title}</div>
+                        <div className="project-name" style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>{a.project_name || 'General Operations'}</div>
                       </td>
                       
-                      <td style={{ padding: '20px 32px' }}>
+                      <td className="col-ownership" style={{ padding: '20px 32px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div className="avatar" style={{ width: '28px', height: '28px', fontSize: 'var(--fs-2xs)', background: 'var(--primary-light)', color: 'var(--primary-main)' }}>{(a.owner || 'U').slice(0, 2).toUpperCase()}</div>
-                          <span style={{ fontWeight: 600, color: '#334155', fontSize: 'var(--fs-sm)' }}>{a.owner || 'Unassigned'}</span>
+                          <span className="owner-name" style={{ fontWeight: 600, color: '#334155', fontSize: 'var(--fs-sm)' }}>{a.owner || 'Unassigned'}</span>
                         </div>
                       </td>
 
-                      <td style={{ padding: '20px 32px', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 500 }}>
-                        {a.due ? new Date(a.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline'}
+                      <td className="col-timeline" style={{ padding: '20px 32px', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 500 }}>
+                        <span className="mobile-label">{t('timeline')}: </span>
+                        <span className="due-date">{a.due ? new Date(a.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline'}</span>
                       </td>
 
-                      <td style={{ padding: '20px 32px' }}>
-                        <span style={{ 
+                      <td className="col-current-status" style={{ padding: '20px 32px' }}>
+                        <span className="mobile-label">{t('current_status')}: </span>
+                        <span className="status-badge" style={{ 
                           padding: '6px 12px', 
                           borderRadius: '8px', 
                           fontSize: 'var(--fs-xs)', 
@@ -216,7 +218,7 @@ export default function EAction({ searchQuery, notify }) {
                         </span>
                       </td>
 
-                      <td style={{ padding: '20px 32px' }}>
+                      <td className="col-administrative" style={{ padding: '20px 32px' }}>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button 
                             className="ctrl-btn" 
