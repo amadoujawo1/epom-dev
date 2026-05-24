@@ -2992,3 +2992,35 @@ label {
     padding-top: 16px !important;
   }
 }
+
+/* Audit Report Mobile Responsiveness */
+@media (max-width: 600px) {
+  .audit-report-panel {
+    width: 95% !important;
+    max-height: 95vh !important;
+  }
+
+  .audit-report-body {
+    padding: 12px !important;
+  }
+
+  .report-section {
+    padding: 10px !important;
+  }
+
+  .report-item-meta {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
+
+  .report-modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch !important;
+  }
+
+  .print-btn, .close-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

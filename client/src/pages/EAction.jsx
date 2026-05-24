@@ -261,42 +261,46 @@ export default function EAction({ searchQuery, notify }) {
       {/* Exception Report Modal */}
       {showReport && reportData && (
         <div className="modal-backdrop" onClick={() => setShowReport(false)}>
-          <div className="modal-panel" style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-panel audit-report-panel" style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">📉 {t('exception_report')}</div>
               <button className="modal-close-btn" onClick={() => setShowReport(false)}>✕</button>
             </div>
-            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(239,68,68,0.05)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.1)' }}>
-                <div style={{ fontWeight: 700, color: '#ef4444', marginBottom: '8px' }}>🚨 {t('overdue_directives')} ({reportData.overdue.length})</div>
+            <div className="modal-body audit-report-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <div className="report-section overdue-section" style={{ marginBottom: '20px', padding: '12px', background: 'rgba(239,68,68,0.05)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.1)' }}>
+                <div className="report-section-title" style={{ fontWeight: 700, color: '#ef4444', marginBottom: '8px' }}>🚨 {t('overdue_directives')} ({reportData.overdue.length})</div>
                 {reportData.overdue.length === 0 ? <div style={{ fontSize: '12px' }}>{t('no_overdue_items')}</div> : (
-                  <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px' }}>
+                  <ul className="report-list" style={{ margin: 0, paddingLeft: '20px', fontSize: '13px' }}>
                     {reportData.overdue.map(a => (
-                      <li key={a.id} style={{ marginBottom: '4px' }}>
-                        <strong>{a.title}</strong> — <span style={{ color: 'var(--text-muted)' }}>{a.owner}</span>
-                        <div style={{ fontSize: '11px', color: '#ef4444' }}>Due: {new Date(a.due).toLocaleDateString()}</div>
+                      <li key={a.id} className="report-item" style={{ marginBottom: '8px' }}>
+                        <div className="report-item-title" style={{ fontWeight: 700 }}>{a.title}</div>
+                        <div className="report-item-meta" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>{a.owner}</span>
+                          <span style={{ color: '#ef4444', fontWeight: 600 }}>Due: {new Date(a.due).toLocaleDateString()}</span>
+                        </div>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <div style={{ padding: '12px', background: 'rgba(124,58,237,0.05)', borderRadius: '8px', border: '1px solid rgba(124,58,237,0.1)' }}>
-                <div style={{ fontWeight: 700, color: '#7c3aed', marginBottom: '8px' }}>⚡ {t('critical_pending_directives')} ({reportData.critical_pending.length})</div>
+              <div className="report-section critical-section" style={{ padding: '12px', background: 'rgba(124,58,237,0.05)', borderRadius: '8px', border: '1px solid rgba(124,58,237,0.1)' }}>
+                <div className="report-section-title" style={{ fontWeight: 700, color: '#7c3aed', marginBottom: '8px' }}>⚡ {t('critical_pending_directives')} ({reportData.critical_pending.length})</div>
                 {reportData.critical_pending.length === 0 ? <div style={{ fontSize: '12px' }}>{t('no_critical_items')}</div> : (
-                  <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px' }}>
+                  <ul className="report-list" style={{ margin: 0, paddingLeft: '20px', fontSize: '13px' }}>
                     {reportData.critical_pending.map(a => (
-                      <li key={a.id} style={{ marginBottom: '4px' }}>
-                        <strong>{a.title}</strong> — <span style={{ color: 'var(--text-muted)' }}>{a.owner}</span>
+                      <li key={a.id} className="report-item" style={{ marginBottom: '8px' }}>
+                        <div className="report-item-title" style={{ fontWeight: 700 }}>{a.title}</div>
+                        <div className="report-item-meta" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{a.owner}</div>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
             </div>
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '16px' }}>
-              <button className="btn btn-outline btn-sm" onClick={() => window.print()}>{t('print_report')}</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setShowReport(false)}>{t('close')}</button>
+            <div className="modal-footer report-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '16px' }}>
+              <button className="btn btn-outline btn-sm print-btn" onClick={() => window.print()}>{t('print_report')}</button>
+              <button className="btn btn-primary btn-sm close-btn" onClick={() => setShowReport(false)}>{t('close')}</button>
             </div>
           </div>
         </div>
