@@ -39,11 +39,9 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
     mandatory_attendees: '', optional_attendees: '',
     is_protected: false, is_strategic: false
   });
-  const [activeSection, setActiveSection] = useState('details');
 
   useEffect(() => {
     if (!isOpen) return;
-    setActiveSection('details');
     setForm({
       title: event?.title || '',
       description: event?.description || '',
@@ -110,200 +108,190 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
           <button className="modal-close-btn" onClick={onClose} type="button">✕</button>
         </div>
 
-        {/* Tabs */}
-        <div className="event-modal-tabs">
-          {['details', 'people', 'notes'].map(tab => (
-            <button
-              key={tab}
-              type="button"
-              className={`event-modal-tab ${activeSection === tab ? 'active' : ''}`}
-              onClick={() => setActiveSection(tab)}
-            >
-              {tab === 'details' && t('tab_details')}
-              {tab === 'people' && t('tab_people')}
-              {tab === 'notes' && t('tab_notes')}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%', overflow: 'hidden' }}>
           <div className="modal-body">
 
             {/* ── DETAILS ── */}
-            {activeSection === 'details' && (
-              <div className="event-section">
-                <div className="form-group">
-                  <label>{t('event_title_label')} <span className="req">*</span></label>
-                  <input
-                    name="title"
-                    placeholder={t('event_title_placeholder')}
-                    value={form.title}
-                    onChange={handleChange}
-                    required
-                    autoFocus
-                  />
-                </div>
+            <div className="event-section">
+              <div className="section-label" style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                {t('tab_details')}
+              </div>
+              
+              <div className="form-group">
+                <label>{t('event_title_label')} <span className="req">*</span></label>
+                <input
+                  name="title"
+                  placeholder={t('event_title_placeholder')}
+                  value={form.title}
+                  onChange={handleChange}
+                  required
+                  autoFocus
+                />
+              </div>
 
+              <div className="form-group">
+                <label>{t('event_type_label')}</label>
+                <div className="type-pill-group">
+                  {TYPE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`type-pill ${form.type === opt.value ? 'active' : ''}`}
+                      onClick={() => setForm(prev => ({ ...prev, type: opt.value }))}
+                    >
+                      {opt.icon} {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
-                  <label>{t('event_type_label')}</label>
-                  <div className="type-pill-group">
-                    {TYPE_OPTIONS.map(opt => (
+                  <label>{t('event_date_label')} <span className="req">*</span></label>
+                  <input type="date" name="date" value={form.date} onChange={handleChange} required />
+                </div>
+                <div className="form-group">
+                  <label>{t('priority')}</label>
+                  <div className="priority-pill-group">
+                    {PRIORITY_OPTIONS.map(p => (
                       <button
-                        key={opt.value}
+                        key={p.value}
                         type="button"
-                        className={`type-pill ${form.type === opt.value ? 'active' : ''}`}
-                        onClick={() => setForm(prev => ({ ...prev, type: opt.value }))}
+                        className={`priority-pill ${form.priority === p.value ? 'active' : ''}`}
+                        style={{ '--p-color': p.color }}
+                        onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
                       >
-                        {opt.icon} {opt.label}
+                        {t(p.labelKey)}
                       </button>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('event_date_label')} <span className="req">*</span></label>
-                    <input type="date" name="date" value={form.date} onChange={handleChange} required />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('priority')}</label>
-                    <div className="priority-pill-group">
-                      {PRIORITY_OPTIONS.map(p => (
-                        <button
-                          key={p.value}
-                          type="button"
-                          className={`priority-pill ${form.priority === p.value ? 'active' : ''}`}
-                          style={{ '--p-color': p.color }}
-                          onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
-                        >
-                          {t(p.labelKey)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('event_start_time')} <span className="req">*</span></label>
-                    <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('event_end_time')} <span className="req">*</span></label>
-                    <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
-                  </div>
-                </div>
-
+              <div className="form-row">
                 <div className="form-group">
-                  <label>{t('event_recurrence')}</label>
-                  <select name="recurrence" value={form.recurrence} onChange={handleChange}>
-                    <option value="none">{t('recurrence_none')}</option>
-                    <option value="daily">{t('recurrence_daily')}</option>
-                    <option value="weekly">{t('recurrence_weekly')}</option>
-                    <option value="monthly">{t('recurrence_monthly')}</option>
-                  </select>
+                  <label>{t('event_start_time')} <span className="req">*</span></label>
+                  <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
                 </div>
-
-                <div className="form-row" style={{ marginTop: '12px', gap: '20px' }}>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="is_protected"
-                      checked={form.is_protected}
-                      onChange={handleChange}
-                    />
-                    <span>🛡️ {t('protected_slot')}</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="is_strategic"
-                      checked={form.is_strategic}
-                      onChange={handleChange}
-                    />
-                    <span>🎯 {t('strategic_priority')}</span>
-                  </label>
-                </div>
-
                 <div className="form-group">
-                  <label>{t('location')}</label>
-                  <input name="location" placeholder={t('event_location_placeholder')} value={form.location} onChange={handleChange} />
-                </div>
-
-                <div className="form-group">
-                  <label>{t('event_link_label')}</label>
-                  <input name="meeting_link" placeholder={t('event_link_placeholder')} value={form.meeting_link} onChange={handleChange} type="url" />
+                  <label>{t('event_end_time')} <span className="req">*</span></label>
+                  <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
                 </div>
               </div>
-            )}
+
+              <div className="form-group">
+                <label>{t('event_recurrence')}</label>
+                <select name="recurrence" value={form.recurrence} onChange={handleChange}>
+                  <option value="none">{t('recurrence_none')}</option>
+                  <option value="daily">{t('recurrence_daily')}</option>
+                  <option value="weekly">{t('recurrence_weekly')}</option>
+                  <option value="monthly">{t('recurrence_monthly')}</option>
+                </select>
+              </div>
+
+              <div className="form-row" style={{ marginTop: '12px', gap: '20px' }}>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="is_protected"
+                    checked={form.is_protected}
+                    onChange={handleChange}
+                  />
+                  <span>🛡️ {t('protected_slot')}</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="is_strategic"
+                    checked={form.is_strategic}
+                    onChange={handleChange}
+                  />
+                  <span>🎯 {t('strategic_priority')}</span>
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label>{t('location')}</label>
+                <input name="location" placeholder={t('event_location_placeholder')} value={form.location} onChange={handleChange} />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label>{t('event_link_label')}</label>
+                <input name="meeting_link" placeholder={t('event_link_placeholder')} value={form.meeting_link} onChange={handleChange} type="url" />
+              </div>
+            </div>
 
             {/* ── PEOPLE ── */}
-            {activeSection === 'people' && (
-              <div className="event-section">
-                <div className="attendees-hint">{t('attendees_hint')}</div>
+            <div className="event-section" style={{ marginTop: '24px' }}>
+              <div className="section-label" style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                {t('tab_people')}
+              </div>
+              
+              <div className="attendees-hint">{t('attendees_hint')}</div>
 
-                <div className="form-group">
-                  <label>
-                    <span className="attendee-label-dot" style={{ background: '#ef4444' }}></span>
-                    {t('mandatory_attendees')}
-                  </label>
-                  <textarea
-                    name="mandatory_attendees"
-                    placeholder="john.doe@example.com, Jane Smith, …"
-                    value={form.mandatory_attendees}
-                    onChange={handleChange}
-                    rows={3}
-                  />
-                  {mandList.length > 0 && (
-                    <div className="attendee-chips">
-                      {mandList.map((a, i) => <span key={i} className="attendee-chip mandatory">{a}</span>)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>
-                    <span className="attendee-label-dot" style={{ background: '#6366f1' }}></span>
-                    {t('optional_attendees')}
-                  </label>
-                  <textarea
-                    name="optional_attendees"
-                    placeholder="john.doe@example.com, Jane Smith, …"
-                    value={form.optional_attendees}
-                    onChange={handleChange}
-                    rows={3}
-                  />
-                  {optList.length > 0 && (
-                    <div className="attendee-chips">
-                      {optList.map((a, i) => <span key={i} className="attendee-chip optional">{a}</span>)}
-                    </div>
-                  )}
-                </div>
-
-                {(mandList.length + optList.length) > 0 && (
-                  <div className="attendee-summary">
-                    {t('attendee_total', { n: mandList.length + optList.length })}
+              <div className="form-group">
+                <label>
+                  <span className="attendee-label-dot" style={{ background: '#ef4444' }}></span>
+                  {t('mandatory_attendees')}
+                </label>
+                <textarea
+                  name="mandatory_attendees"
+                  placeholder="john.doe@example.com, Jane Smith, …"
+                  value={form.mandatory_attendees}
+                  onChange={handleChange}
+                  rows={3}
+                />
+                {mandList.length > 0 && (
+                  <div className="attendee-chips">
+                    {mandList.map((a, i) => <span key={i} className="attendee-chip mandatory">{a}</span>)}
                   </div>
                 )}
               </div>
-            )}
+
+              <div className="form-group">
+                <label>
+                  <span className="attendee-label-dot" style={{ background: '#6366f1' }}></span>
+                  {t('optional_attendees')}
+                </label>
+                <textarea
+                  name="optional_attendees"
+                  placeholder="john.doe@example.com, Jane Smith, …"
+                  value={form.optional_attendees}
+                  onChange={handleChange}
+                  rows={3}
+                />
+                {optList.length > 0 && (
+                  <div className="attendee-chips">
+                    {optList.map((a, i) => <span key={i} className="attendee-chip optional">{a}</span>)}
+                  </div>
+                )}
+              </div>
+
+              {(mandList.length + optList.length) > 0 && (
+                <div className="attendee-summary" style={{ marginBottom: '24px' }}>
+                  {t('attendee_total', { n: mandList.length + optList.length })}
+                </div>
+              )}
+            </div>
 
             {/* ── NOTES ── */}
-            {activeSection === 'notes' && (
-              <div className="event-section">
-                <div className="form-group">
-                  <label>{t('agenda_label')}</label>
-                  <textarea
-                    name="description"
-                    placeholder={t('agenda_placeholder')}
-                    value={form.description}
-                    onChange={handleChange}
-                    rows={10}
-                    style={{ minHeight: '200px' }}
-                  />
-                </div>
+            <div className="event-section" style={{ marginTop: '24px' }}>
+              <div className="section-label" style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                {t('tab_notes')}
               </div>
-            )}
+              
+              <div className="form-group">
+                <label>{t('agenda_label')}</label>
+                <textarea
+                  name="description"
+                  placeholder={t('agenda_placeholder')}
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={6}
+                  style={{ minHeight: '120px' }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Footer */}

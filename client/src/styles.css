@@ -1269,33 +1269,6 @@ label {
 /* ── Event Modal Enhancements ── */
 .event-modal-panel { max-width: 580px; }
 
-.event-modal-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 10px 16px 0;
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.event-modal-tab {
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: var(--transition);
-  border-radius: 6px 6px 0 0;
-  margin-bottom: -1px;
-}
-
-.event-modal-tab:hover { color: var(--text-primary); background: var(--hover-bg); }
-.event-modal-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: transparent; }
-
 .event-section { display: flex; flex-direction: column; gap: 14px; }
 
 /* Type pills */
