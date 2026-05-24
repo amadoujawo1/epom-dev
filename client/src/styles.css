@@ -2746,3 +2746,106 @@ label {
     font-size: 20px;
   }
 }
+
+/* Personnel Mobile Responsiveness */
+.personnel-header-section {
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.btn-text-mobile {
+  display: none;
+}
+
+.mobile-label {
+  display: none;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .personnel-header-section {
+    padding: 24px 20px 20px !important;
+  }
+
+  .personnel-controls {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .personnel-search {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .btn-text-desktop {
+    display: none;
+  }
+
+  .btn-text-mobile {
+    display: inline;
+  }
+
+  .add-personnel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Table to Cards transformation */
+  .personnel-table thead {
+    display: none;
+  }
+
+  .personnel-table, 
+  .personnel-table tbody, 
+  .personnel-table tr, 
+  .personnel-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .personnel-row {
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .personnel-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .personnel-table td {
+    padding: 10px 0 !important;
+    border: none !important;
+  }
+
+  .col-employee {
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-bottom: 16px !important;
+    margin-bottom: 12px;
+  }
+
+  .mobile-label {
+    display: inline-block;
+    min-width: 60px;
+  }
+
+  .col-username {
+    font-size: var(--fs-xs);
+  }
+
+  .col-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #f1f5f9 !important;
+    margin-top: 12px;
+    padding-top: 16px !important;
+  }
+}

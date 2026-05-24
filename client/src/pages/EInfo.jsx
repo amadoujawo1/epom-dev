@@ -300,8 +300,8 @@ ${ev.description || 'To be defined...'}
           <div />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <div style={{ position: 'relative' }}>
-              <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)', pointerEvents: 'none' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input placeholder={t('search_docs')} value={q} onChange={e => setQ(e.target.value)} style={{ paddingLeft: '32px', width: '200px' }} />
+              <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '12px', height: '12px', color: 'var(--text-muted)', pointerEvents: 'none' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input placeholder={t('search_docs')} value={q} onChange={e => setQ(e.target.value)} style={{ paddingLeft: '28px', width: '160px', height: '32px', fontSize: 'var(--fs-xs)', borderRadius: '8px' }} />
             </div>
             <button className="btn btn-primary btn-sm" onClick={() => { setInitialFormData(null); setIsModalOpen(true); }}>
               <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{t('new_document')}</>

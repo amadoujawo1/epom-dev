@@ -149,8 +149,8 @@ export default function Personnel({ searchQuery, notify }) {
       {/* ── Main Container ── */}
       <div className="card" style={{ padding: '0', overflow: 'hidden', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', borderRadius: '24px' }}>
         {/* Header Section */}
-        <div style={{ padding: '32px 32px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div className="personnel-header-section" style={{ padding: '32px 32px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
             <h2 style={{ margin: 0, fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>
               {t('page_personnel')}
             </h2>
@@ -159,24 +159,24 @@ export default function Personnel({ searchQuery, notify }) {
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="search-container" style={{ maxWidth: '320px', margin: 0 }}>
+          <div className="personnel-controls" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div className="search-container personnel-search" style={{ maxWidth: '320px', margin: 0, flex: '1 1 300px' }}>
               <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input 
                 placeholder={t('search_placeholder')} 
                 value={searchQuery || ''} 
                 readOnly
-                style={{ background: '#f8fafc', borderRadius: '12px', height: '48px', paddingLeft: '44px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)' }}
+                style={{ background: '#f8fafc', borderRadius: '12px', height: '48px', paddingLeft: '44px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)', width: '100%' }}
               />
             </div>
             
             <div style={{ display: 'flex', gap: '12px' }}>
               <button 
-                className="btn btn-primary" 
+                className="btn btn-primary add-personnel-btn" 
                 onClick={() => openForm()}
                 style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
               >
-                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> ADD PERSONNEL
+                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">ADD PERSONNEL</span><span className="btn-text-mobile">ADD</span>
               </button>
             </div>
           </div>
@@ -193,42 +193,43 @@ export default function Personnel({ searchQuery, notify }) {
             {people.length === 0 ? 'NO PERSONNEL RECORDS FOUND.' : 'NO RESULTS MATCH YOUR SEARCH.'}
           </div>
         ) : (
-          <div style={{ padding: '0 0 32px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
+          <div className="personnel-table-wrapper" style={{ padding: '0 0 32px' }}>
+            <table className="personnel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead className="personnel-table-head">
                 <tr style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
                   {['Employee', 'Username', 'Department', 'Role', 'Status', 'Actions'].map(col => (
-                    <th key={col} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    <th key={col} className={`col-${col.toLowerCase()}`} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
                       {col}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="personnel-table-body">
                 {filtered.map(p => (
-                  <tr key={p.id} className="action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s', opacity: p.status === 'Inactive' ? 0.6 : 1 }}>
-                    <td style={{ padding: '20px 32px' }}>
+                  <tr key={p.id} className="personnel-row action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s', opacity: p.status === 'Inactive' ? 0.6 : 1 }}>
+                    <td className="col-employee" style={{ padding: '20px 32px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div className="avatar" style={{ width: '36px', height: '36px', fontSize: 'var(--fs-sm)', background: avatarGradient(p.name) }}>
                           {getInitials(p.name)}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)' }}>{p.name}</div>
-                          <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>{p.email || 'No email'}</div>
+                          <div className="personnel-name" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)' }}>{p.name}</div>
+                          <div className="personnel-email" style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>{p.email || 'No email'}</div>
                         </div>
                       </div>
                     </td>
                     
-                    <td style={{ padding: '20px 32px' }}>
-                      <span style={{ fontWeight: 600, color: '#64748b', fontSize: 'var(--fs-sm)' }}>@{p.username}</span>
+                    <td className="col-username" style={{ padding: '20px 32px' }}>
+                      <span className="personnel-username-pill" style={{ fontWeight: 600, color: '#64748b', fontSize: 'var(--fs-sm)' }}>@{p.username}</span>
                     </td>
 
-                    <td style={{ padding: '20px 32px', color: '#334155', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
-                      {p.department || '—'}
+                    <td className="col-department" style={{ padding: '20px 32px', color: '#334155', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
+                      <span className="mobile-label">DEPT: </span>{p.department || '—'}
                     </td>
 
-                    <td style={{ padding: '20px 32px' }}>
-                      <span style={{ 
+                    <td className="col-role" style={{ padding: '20px 32px' }}>
+                      <span className="mobile-label">ROLE: </span>
+                      <span className="personnel-role-badge" style={{ 
                         padding: '4px 10px', 
                         borderRadius: '6px', 
                         fontSize: '11px', 
@@ -241,26 +242,32 @@ export default function Personnel({ searchQuery, notify }) {
                       </span>
                     </td>
 
-                    <td style={{ padding: '20px 32px' }}>
+                    <td className="col-status" style={{ padding: '20px 32px' }}>
+                      <span className="mobile-label">STATUS: </span>
                       <span 
                         onClick={() => toggleStatus(p)}
+                        className={`personnel-status-pill status-${(p.status || 'Active').toLowerCase()}`}
                         style={{ 
                           padding: '6px 12px', 
                           borderRadius: '8px', 
-                          fontSize: 'var(--fs-xs)', 
-                          fontWeight: 700, 
+                          fontSize: '10px', 
+                          fontWeight: 800, 
+                          cursor: 'pointer',
                           textTransform: 'uppercase',
-                          background: p.status === 'Active' ? '#ecfdf5' : '#fff1f2',
-                          color: p.status === 'Active' ? '#10b981' : '#f43f5e',
-                          border: `1px solid ${p.status === 'Active' ? '#d1fae5' : '#ffe4e6'}`,
-                          cursor: 'pointer'
+                          letterSpacing: '0.5px',
+                          background: p.status === 'Inactive' ? '#fee2e2' : '#ecfdf5',
+                          color: p.status === 'Inactive' ? '#ef4444' : '#10b981',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
                         }}
                       >
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
                         {p.status || 'Active'}
                       </span>
                     </td>
 
-                    <td style={{ padding: '20px 32px' }}>
+                    <td className="col-actions" style={{ padding: '20px 32px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className="ctrl-btn" onClick={() => openForm(p)} title="Edit" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
                           ✏️
