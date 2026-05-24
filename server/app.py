@@ -15,37 +15,8 @@ from cryptography.hazmat.primitives import padding
 # Load environment variables
 load_dotenv()
 
-def create_app(test_config=None):
-    app = Flask(__name__, static_folder='../client/dist', static_url_path='/')
-    
-    # Production Security Configuration
-    app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-key-123'),
-        JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'jwt-dev-key'),
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        MAX_CONTENT_LENGTH=16 * 1024 * 1024  # 16MB limit
-    )
 
-    if test_config:
-        app.config.from_mapping(test_config)
-
-    CORS(app, resources={r"/api/*": {"origins": os.environ.get('CORS_ORIGINS', '*')}})
-    
-    # Initialize DB
-    from models import db
-    db.init_app(app)
-    
-    jwt = JWTManager(app)
-
-    @app.route('/')
-    def serve():
-        return send_from_directory(app.static_folder, 'index.html')
-
-    @app.errorhandler(404)
-    def not_found(e):
-        return send_from_directory(app.static_folder, 'index.html')
-
+def _split_full_name(full_name):
     parts = (full_name or '').strip().split(None, 1)
     if not parts:
         return '', ''
@@ -125,30 +96,34 @@ def _sync_user_for_personnel(personnel, password=None, old_username=None):
     return user
 
 
-def create_app():
-    app = Flask(__name__, static_folder='../client/dist', static_url_path='')
-    CORS(app)  # Enable CORS for all routes
+def create_app(test_config=None):
+    app = Flask(__name__, static_folder='../client/dist', static_url_path='/')
+    
+    # Configuration
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-key-123'),
+        JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'jwt-dev-key'),
+        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        MAX_CONTENT_LENGTH=16 * 1024 * 1024
+    )
+
+    if test_config:
+        app.config.from_mapping(test_config)
 
     # Database configuration - Support both Railway and local development
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db')
     
     # Validate DATABASE_URL format
     if database_url and "host" in database_url and "password" in database_url:
         print("[!] DATABASE_URL contains placeholder values - using SQLite fallback")
-        print("[*] Please configure Railway environment variables properly")
-        database_url = "sqlite:///epom_dev.db"
-    elif database_url and database_url.startswith("postgresql"):
-        print(f"[+] Using Railway PostgreSQL database")
-    elif database_url:
-        print(f"Using external database: {database_url}")
-    else:
-        print("[!] DATABASE_URL not set, using SQLite fallback")
-        database_url = "sqlite:///epom_dev.db"
+        database_url = "sqlite:///instance/epom_dev.db"
     
     print(f"[*] Database URL: {database_url}")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "fallback-jwt-secret")
+    
+    # Configure CORS
+    CORS(app, resources={r"/api/*": {"origins": os.environ.get('CORS_ORIGINS', '*')}})
     
     import sys
     sys.path.append(os.path.dirname(__file__))
@@ -881,7 +856,7 @@ def create_app():
         try:
             _create_user_for_personnel(p, password_hash)
             db.session.commit()
-        except ValueError as e:
+        except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 400
 
@@ -930,7 +905,7 @@ def create_app():
         try:
             _sync_user_for_personnel(p, password=new_password, old_username=old_username)
             db.session.commit()
-        except ValueError as e:
+        except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 400
 

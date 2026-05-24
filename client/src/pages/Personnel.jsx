@@ -123,7 +123,7 @@ export default function Personnel({ searchQuery, notify }) {
         notify(editingId ? 'Personnel updated' : 'Personnel added', 'success')
         closeForm()
       })
-      .catch(() => notify(editingId ? 'Failed to update' : 'Failed to add', 'error'))
+      .catch(err => notify(err.message || (editingId ? 'Failed to update' : 'Failed to add'), 'error'))
       .finally(() => setSubmitting(false))
   }
 
