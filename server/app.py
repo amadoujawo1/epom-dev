@@ -103,21 +103,36 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-key-123'),
         JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'jwt-dev-key'),
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db'),
+        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         MAX_CONTENT_LENGTH=16 * 1024 * 1024
     )
+
+    # Re-evaluate database_url for the app config if not provided in env
+    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, 'instance', 'epom_dev.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 
     if test_config:
         app.config.from_mapping(test_config)
 
     # Database configuration - Support both Railway and local development
-    database_url = os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db')
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        # Use absolute path for local SQLite to avoid "unable to open database file"
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, 'instance', 'epom_dev.db')
+        # Ensure instance directory exists
+        os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
+        database_url = f"sqlite:///{db_path}"
     
-    # Validate DATABASE_URL format
+    # Validate DATABASE_URL format (fallback if environment variable has placeholders)
     if database_url and "host" in database_url and "password" in database_url:
         print("[!] DATABASE_URL contains placeholder values - using SQLite fallback")
-        database_url = "sqlite:///instance/epom_dev.db"
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, 'instance', 'epom_dev.db')
+        database_url = f"sqlite:///{db_path}"
     
     print(f"[*] Database URL: {database_url}")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
