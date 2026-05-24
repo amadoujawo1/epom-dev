@@ -1,0 +1,14 @@
+flask
+flask-cors
+pyjwt
+python-dotenv
+Flask-SQLAlchemy
+psycopg2-binary
+Flask-Migrate
+gunicorn
+waitress
+cryptography
+flask-jwt-extended
+bcrypt
+marked
+python-multipart
