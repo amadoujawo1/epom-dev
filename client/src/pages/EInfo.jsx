@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { marked } from 'marked';
 import { apiFetch } from '../utils/api';
 import { useLanguage } from '../context/LanguageContext';
+import DocumentModal from '../components/DocumentModal';
 import './EInfo.css';
 
 // ── Standardized Document Templates ──────────────────────────────────────────
@@ -114,18 +115,14 @@ export default function EInfo({ searchQuery, notify }) {
   const [categoryKey, setCategoryKey] = useState('cat_all');
   const [sideTab, setSideTab] = useState('categories'); // 'categories' | 'templates'
   const [q, setQ] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionLoading, setActionLoading] = useState(null); // doc id being actioned
   const [viewDoc, setViewDoc] = useState(null); // doc id for fullscreen view
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
   const [briefingOpen, setBriefingOpen] = useState(true);
 
-  const [form, setForm] = useState({
-    title: '', content: '', priority: 'Low',
-    category: 'Draft Documents', file: null,
-  });
+  const [initialFormData, setInitialFormData] = useState(null);
 
   // ── Data fetching ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -155,22 +152,20 @@ export default function EInfo({ searchQuery, notify }) {
   });
 
   // ── Create document ─────────────────────────────────────────────────────────
-  function submit(e) {
-    e.preventDefault();
-    if (!form.title.trim()) { notify && notify(t('title_required'), 'error'); return; }
+  function handleSaveDocument(formData) {
     setSubmitting(true);
     const data = new FormData();
-    data.append('title', form.title);
-    data.append('content', form.content);
-    data.append('priority', form.priority);
-    data.append('category', form.category);
-    if (form.file) data.append('file', form.file);
+    data.append('title', formData.title);
+    data.append('content', formData.content);
+    data.append('priority', formData.priority);
+    data.append('category', formData.category);
+    if (formData.file) data.append('file', formData.file);
+
     apiFetch('/api/documents', { method: 'POST', body: data })
       .then(newDoc => {
         setDocs(prev => [newDoc, ...prev]);
-        setShowForm(false);
-        setShowPreview(false);
-        setForm({ title: '', content: '', priority: 'Low', category: 'Draft Documents', file: null });
+        setIsModalOpen(false);
+        setInitialFormData(null);
         notify && notify(t('doc_created'), 'success');
       })
       .catch(() => notify && notify(t('failed_create_doc'), 'error'))
@@ -179,10 +174,14 @@ export default function EInfo({ searchQuery, notify }) {
 
   // ── Load template into form ─────────────────────────────────────────────────
   function useTemplate(tpl) {
-    setForm({ title: tpl.name, content: tpl.content, priority: 'Medium', category: tpl.category, file: null });
-    setSideTab('categories');
-    setShowForm(true);
-    setShowPreview(true);
+    setInitialFormData({ 
+      title: tpl.name, 
+      content: tpl.content, 
+      priority: 'Medium', 
+      category: tpl.category, 
+      file: null 
+    });
+    setIsModalOpen(true);
     notify && notify(`Template "${tpl.name}" loaded`, 'success');
   }
 
@@ -201,16 +200,14 @@ ${ev.description || 'To be defined...'}
 
 ---\n`;
     
-    setForm({ 
+    setInitialFormData({ 
       title: `Briefing: ${ev.title}`, 
       content: briefingTpl.content.replace('## 1. SITUATION', `## 1. SITUATION\n\n${meetingInfo}`),
       priority: ev.priority || 'Medium', 
       category: 'Draft Documents', 
       file: null 
     });
-    setSideTab('categories');
-    setShowForm(true);
-    setShowPreview(true);
+    setIsModalOpen(true);
     notify && notify(`Auto-briefing generated for "${ev.title}"`, 'success');
   }
 
@@ -303,10 +300,8 @@ ${ev.description || 'To be defined...'}
               <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '13px', height: '13px', color: 'var(--text-muted)', pointerEvents: 'none' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input placeholder={t('search_docs')} value={q} onChange={e => setQ(e.target.value)} style={{ paddingLeft: '32px', width: '200px' }} />
             </div>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(v => !v)}>
-              {showForm ? `✕ ${t('close')}` : (
-                <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{t('new_document')}</>
-              )}
+            <button className="btn btn-primary btn-sm" onClick={() => { setInitialFormData(null); setIsModalOpen(true); }}>
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{t('new_document')}</>
             </button>
           </div>
         </div>
@@ -412,71 +407,6 @@ ${ev.description || 'To be defined...'}
 
         {/* ── Main Content ── */}
         <section>
-
-          {/* New Document Form */}
-          {showForm && (
-            <div className="note-form-panel" style={{ marginBottom: '16px' }}>
-              <div className="note-form-header">{t('new_document')}</div>
-              <form onSubmit={submit}>
-                <div className="note-form-body">
-                  <div className="form-group">
-                    <label>{t('title')} <span className="req">*</span></label>
-                    <input
-                      placeholder={t('doc_title_placeholder')}
-                      value={form.title}
-                      onChange={e => setForm({ ...form, title: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('priority')}</label>
-                      <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
-                        <option value="Low">{t('priority_low')}</option>
-                        <option value="Medium">{t('priority_medium')}</option>
-                        <option value="High">{t('priority_high')}</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>{t('category')}</label>
-                      <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                        {CATEGORIES_KEYS.map(({ key, dbVal }) => (
-                          <option key={key} value={dbVal}>{t(key)}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>{t('doc_content_label')}</label>
-                    <textarea
-                      placeholder={t('doc_content_placeholder')}
-                      value={form.content}
-                      onChange={e => setForm({ ...form, content: e.target.value })}
-                      style={{ minHeight: '160px' }}
-                    />
-                  </div>
-                  {showPreview && form.content && (
-                    <div className="markdown-preview" dangerouslySetInnerHTML={{ __html: marked(form.content) }} />
-                  )}
-                  <div className="form-group">
-                    <label>{t('attach_file')}</label>
-                    <input type="file" onChange={e => setForm({ ...form, file: e.target.files[0] })} />
-                  </div>
-                </div>
-                <div className="note-form-actions">
-                  <button type="submit" className="btn btn-primary btn-sm" disabled={submitting}>
-                    {submitting ? <><span className="btn-spinner" /> {t('saving')}</> : t('create_document')}
-                  </button>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowPreview(v => !v)}>
-                    {showPreview ? t('hide_preview') : t('preview_md')}
-                  </button>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setShowForm(false); setShowPreview(false); }}>
-                    {t('cancel')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
 
           {/* Document Cards */}
           {filteredDocs.length === 0 ? (
@@ -643,6 +573,16 @@ ${ev.description || 'To be defined...'}
           </div>
         </div>
       )}
+
+      {/* ── New Document Modal ── */}
+      <DocumentModal 
+        isOpen={isModalOpen} 
+        onClose={() => { setIsModalOpen(false); setInitialFormData(null); }}
+        onSave={handleSaveDocument}
+        submitting={submitting}
+        categories={CATEGORIES_KEYS}
+        initialData={initialFormData}
+      />
     </div>
   );
 }
