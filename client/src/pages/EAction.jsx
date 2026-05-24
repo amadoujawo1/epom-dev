@@ -29,9 +29,9 @@ export default function EAction({ searchQuery, notify }) {
     apiFetch('/api/actions/stats').then(setStats).catch(() =>
       setStats({ in_progress: 0, overdue: 0, due_this_week: 0, completed: 0, pending: 0 })
     )
-    apiFetch('/api/actions').then(setActions).catch(() => {
+    apiFetch('/api/actions').then(setActions).catch(err => {
       setActions([])
-      notify && notify(t('failed_load_actions'), 'error')
+      notify && notify(err.message || t('failed_load_actions'), 'error')
     })
   }
 

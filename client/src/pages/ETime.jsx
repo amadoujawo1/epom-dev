@@ -44,7 +44,7 @@ export default function ETime({ searchQuery, notify }) {
       .catch(err => {
         setEvents([])
         console.error(err)
-        if (notify) notify(t('failed_load_events'), 'error')
+        if (notify) notify(err.message || t('failed_load_events'), 'error')
       })
   }
 

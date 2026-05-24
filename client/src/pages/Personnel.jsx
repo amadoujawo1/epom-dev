@@ -34,7 +34,10 @@ export default function Personnel({ searchQuery, notify }) {
     setLoading(true)
     apiFetch('/api/personnel')
       .then(setPeople)
-      .catch(() => { setPeople([]); notify('Failed to load personnel', 'error') })
+      .catch(err => { 
+        setPeople([]); 
+        notify(err.message || 'Failed to load personnel', 'error') 
+      })
       .finally(() => setLoading(false))
   }
 

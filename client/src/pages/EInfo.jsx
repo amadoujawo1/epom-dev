@@ -126,7 +126,10 @@ export default function EInfo({ searchQuery, notify }) {
 
   // ── Data fetching ───────────────────────────────────────────────────────────
   useEffect(() => {
-    apiFetch('/api/documents').then(setDocs).catch(() => setDocs([]));
+    apiFetch('/api/documents').then(setDocs).catch(err => {
+      setDocs([]);
+      notify && notify(err.message || t('failed_load_docs'), 'error');
+    });
     // Fetch upcoming meetings (next 48h) for auto-briefing
     apiFetch('/api/calendar').then(events => {
       const now = new Date();

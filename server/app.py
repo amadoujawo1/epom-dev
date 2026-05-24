@@ -214,8 +214,10 @@ def create_app(test_config=None):
             import traceback
             traceback.print_exc()
 
-    # Debugging: Log the database URL being used
+    # Debugging: Log the database URL and static folder
     print(f"Using database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print(f"Static folder: {os.path.abspath(app.static_folder)}")
+    print(f"Static folder exists: {os.path.exists(app.static_folder)}")
 
     @app.route('/api/stats', methods=['GET'])
     def overall_stats():
