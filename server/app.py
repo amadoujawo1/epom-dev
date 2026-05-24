@@ -152,10 +152,16 @@ def create_app(test_config=None):
     # Custom JWT Error Handlers to help debug mobile 422 errors
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
+        # Safely log the issue for debugging without exposing sensitive data
+        auth_header = request.headers.get('Authorization', 'Missing')
+        token_preview = auth_header[:15] + "..." if len(auth_header) > 15 else auth_header
+        print(f"[!] JWT Error: {error} | Header: {token_preview}")
+        
         return jsonify({
             'error': 'Invalid Token',
             'message': error,
-            'details': 'The provided token is malformed or invalid.'
+            'details': 'The provided token is malformed or invalid.',
+            'tip': 'Try logging out and logging back in to reset your session.'
         }), 422
 
     @jwt.unauthorized_loader

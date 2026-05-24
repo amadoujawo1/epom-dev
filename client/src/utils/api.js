@@ -1,6 +1,6 @@
 // API utility with automatic token handling
 export async function apiFetch(url, options = {}) {
-  const token = localStorage.getItem('token')
+  let token = localStorage.getItem('token')
   const headers = {
     ...options.headers
   }
@@ -9,11 +9,14 @@ export async function apiFetch(url, options = {}) {
     headers['Content-Type'] = 'application/json'
   }
   
-  // Enhanced token check to avoid sending "null" or "undefined" as strings
-  if (token && token !== 'null' && token !== 'undefined') {
-    headers['Authorization'] = `Bearer ${token}`
+  // Enhanced token check and sanitization
+  if (token) {
+    token = token.trim()
+    if (token !== 'null' && token !== 'undefined' && token !== '') {
+      headers['Authorization'] = `Bearer ${token}`
+    }
   }
-  
+
   const response = await fetch(url, {
     ...options,
     headers
@@ -22,8 +25,9 @@ export async function apiFetch(url, options = {}) {
   if (!response.ok) {
     // Try to extract server-provided error message
     let errMsg = `API error: ${response.status}`
+    let body = null
     try {
-      const body = await response.json()
+      body = await response.json()
       if (body) {
         if (body.error) errMsg = body.error
         else if (body.message) errMsg = body.message
@@ -32,12 +36,14 @@ export async function apiFetch(url, options = {}) {
       // ignore JSON parse errors
     }
 
-    // If unauthorized, clear token and force reload to show login
-    if (response.status === 401) {
+    // If unauthorized (401) OR invalid token (422), clear session and force login
+    if (response.status === 401 || (response.status === 422 && body?.error === 'Invalid Token')) {
+      console.warn('Session invalid or expired. Clearing token...')
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
       // reload app so Login screen appears
       window.location.reload()
-      throw new Error('Unauthorized')
+      throw new Error('Session invalid')
     }
 
     throw new Error(errMsg)
