@@ -46,6 +46,8 @@ class Event(db.Model):
     type = db.Column(db.String(50), default='meeting')  # meeting, briefing, travel, etc.
     recurrence = db.Column(db.String(50), nullable=True)  # e.g., daily, weekly, monthly
     meeting_link = db.Column(db.String(255), nullable=True)
+    is_protected = db.Column(db.Boolean, default=False)
+    is_strategic = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -61,6 +63,8 @@ class Event(db.Model):
             "location": self.location,
             "meeting_link": self.meeting_link,
             "recurrence": self.recurrence,
+            "is_protected": self.is_protected,
+            "is_strategic": self.is_strategic,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

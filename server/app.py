@@ -1119,7 +1119,9 @@ def create_app():
             "optional_attendees": e.optional_attendees,
             "location": e.location,
             "meeting_link": e.meeting_link,
-            "resource_id": e.resource_id
+            "resource_id": e.resource_id,
+            "is_protected": e.is_protected,
+            "is_strategic": e.is_strategic
         } for e in events]), 200
 
     @app.route('/api/calendar', methods=['POST'])
@@ -1159,7 +1161,9 @@ def create_app():
                 optional_attendees=json.dumps(data.get('optional_attendees', [])),
                 resource_id=resource_id,
                 location=data.get('location', ''),
-                meeting_link=data.get('meeting_link', '')
+                meeting_link=data.get('meeting_link', ''),
+                is_protected=data.get('is_protected', False),
+                is_strategic=data.get('is_strategic', False)
             )
             db.session.add(new_event)
             db.session.commit()
@@ -1196,6 +1200,10 @@ def create_app():
                 event.mandatory_attendees = _json.dumps(data['mandatory_attendees'])
             if 'optional_attendees' in data:
                 event.optional_attendees = _json.dumps(data['optional_attendees'])
+            if 'is_protected' in data:
+                event.is_protected = data['is_protected']
+            if 'is_strategic' in data:
+                event.is_strategic = data['is_strategic']
             db.session.commit()
             return jsonify({"message": "Event updated successfully"}), 200
         except Exception as e:
@@ -1242,6 +1250,37 @@ def create_app():
             }), 200
         except Exception as e:
             print(f"Error in get_actions_stats: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/api/actions/report', methods=['GET'])
+    @jwt_required()
+    def get_exception_report():
+        from models import Action, User
+        try:
+            now = datetime.now(timezone.utc)
+            overdue_actions = Action.query.filter(
+                Action.status != 'Completed',
+                Action.due_date < now
+            ).all()
+            
+            critical_pending = Action.query.filter(
+                Action.status != 'Completed',
+                Action.priority == 'Critical'
+            ).all()
+            
+            report = {
+                "generated_at": now.isoformat(),
+                "overdue": [{
+                    "id": a.id, "title": a.title, "due": a.due_date.isoformat(),
+                    "owner": db.session.get(User, a.assigned_to).username if a.assigned_to else "Unassigned"
+                } for a in overdue_actions],
+                "critical_pending": [{
+                    "id": a.id, "title": a.title, "priority": a.priority,
+                    "owner": db.session.get(User, a.assigned_to).username if a.assigned_to else "Unassigned"
+                } for a in critical_pending]
+            }
+            return jsonify(report), 200
+        except Exception as e:
             return jsonify({"error": str(e)}), 500
 
     @app.route('/api/actions', methods=['GET'])
@@ -1546,8 +1585,85 @@ def create_app():
             "uploader_name": d.username or "Unknown",
             "doc_type": d.Document.doc_type,
             "content": d.Document.content,
-            "upload_date": d.Document.created_at.isoformat()
+            "upload_date": d.Document.created_at.isoformat(),
+            "created": d.Document.created_at.isoformat()
         } for d in docs]), 200
+
+    @app.route('/api/documents', methods=['POST'])
+    @jwt_required()
+    def create_document():
+        from models import Document, User
+        from werkzeug.utils import secure_filename
+        import os
+        current_user_id = int(get_jwt_identity())
+        
+        try:
+            # Check if request has files (multipart/form-data) or JSON
+            if request.is_json:
+                data = request.json
+                title = data.get('title')
+                content = data.get('content', '')
+                category = data.get('category', 'Internal')
+                doc_type = data.get('doc_type', 'Briefing Note')
+                file_path = 'digitized_note'
+            else:
+                title = request.form.get('title')
+                content = request.form.get('content', '')
+                category = request.form.get('category', 'Internal')
+                doc_type = request.form.get('doc_type', 'Briefing Note')
+                
+                # Check for file upload
+                if 'file' in request.files and request.files['file'].filename != '':
+                    file = request.files['file']
+                    upload_dir = 'uploads'
+                    if not os.path.exists(upload_dir):
+                        os.makedirs(upload_dir)
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(upload_dir, filename)
+                    file.save(file_path)
+                    doc_type = 'Uploaded File'
+                    if not content:
+                        content = f"Physical file uploaded: {filename}"
+                else:
+                    file_path = 'digitized_note'
+                    
+            if not title:
+                return jsonify({"error": "Missing document title"}), 400
+                
+            new_doc = Document(
+                title=title,
+                category=category,
+                doc_type=doc_type,
+                content=content,
+                file_path=file_path,
+                status='Draft',
+                uploaded_by=current_user_id
+            )
+            
+            db.session.add(new_doc)
+            db.session.commit()
+            
+            uploader = db.session.get(User, current_user_id)
+            uploader_name = uploader.username if uploader else "Unknown"
+            
+            return jsonify({
+                "id": new_doc.id,
+                "title": new_doc.title,
+                "file_path": new_doc.file_path,
+                "status": new_doc.status,
+                "category": new_doc.category,
+                "uploaded_by": new_doc.uploaded_by,
+                "uploader_name": uploader_name,
+                "doc_type": new_doc.doc_type,
+                "content": new_doc.content,
+                "upload_date": new_doc.created_at.isoformat(),
+                "created": new_doc.created_at.isoformat()
+            }), 201
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating document: {str(e)}")
+            return jsonify({"error": f"Failed to create document: {str(e)}"}), 500
 
     @app.route('/api/documents/<int:doc_id>/audit', methods=['GET'])
     @jwt_required()
@@ -1707,6 +1823,106 @@ def create_app():
             db.session.rollback()
             print(f"Error updating document: {str(e)}")
             return jsonify({"error": f"Failed to update document: {str(e)}"}), 500
+
+    # ── Document Approval Workflow Routes ──────────────────────────────────────
+
+    @app.route('/api/documents/<int:doc_id>/submit-approval', methods=['POST'])
+    @jwt_required()
+    def submit_document_for_approval(doc_id):
+        """Submit a draft document for approval (owner or admin)."""
+        from models import Document, DocumentAudit
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
+        doc = db.session.get(Document, doc_id)
+        if not doc:
+            return jsonify({'error': 'Document not found'}), 404
+        if current_user.role != 'Admin' and doc.uploaded_by != current_user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        doc.status = 'Pending Approval'
+        doc.category = 'Pending Approval'
+        audit = DocumentAudit(document_id=doc_id, user_id=current_user_id,
+                              action=f'Submitted for approval by {current_user.username}')
+        db.session.add(audit)
+        db.session.commit()
+        return jsonify({
+            'id': doc.id, 'status': doc.status, 'category': doc.category,
+            'title': doc.title, 'content': doc.content,
+            'created': doc.created_at.isoformat()
+        }), 200
+
+    @app.route('/api/documents/<int:doc_id>/approve', methods=['POST'])
+    @jwt_required()
+    def approve_document(doc_id):
+        """Approve a pending document (Admin only)."""
+        from models import Document, DocumentAudit
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
+        if current_user.role != 'Admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        doc = db.session.get(Document, doc_id)
+        if not doc:
+            return jsonify({'error': 'Document not found'}), 404
+        doc.status = 'Approved'
+        audit = DocumentAudit(document_id=doc_id, user_id=current_user_id,
+                              action=f'Approved by {current_user.username}')
+        db.session.add(audit)
+        db.session.commit()
+        return jsonify({
+            'id': doc.id, 'status': doc.status, 'category': doc.category,
+            'title': doc.title, 'content': doc.content,
+            'created': doc.created_at.isoformat()
+        }), 200
+
+    @app.route('/api/documents/<int:doc_id>/reject', methods=['POST'])
+    @jwt_required()
+    def reject_document(doc_id):
+        """Reject a pending document (Admin only)."""
+        from models import Document, DocumentAudit
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
+        if current_user.role != 'Admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        doc = db.session.get(Document, doc_id)
+        if not doc:
+            return jsonify({'error': 'Document not found'}), 404
+        doc.status = 'Rejected'
+        doc.category = 'Draft Documents'
+        audit = DocumentAudit(document_id=doc_id, user_id=current_user_id,
+                              action=f'Rejected by {current_user.username}')
+        db.session.add(audit)
+        db.session.commit()
+        return jsonify({
+            'id': doc.id, 'status': doc.status, 'category': doc.category,
+            'title': doc.title, 'content': doc.content,
+            'created': doc.created_at.isoformat()
+        }), 200
+
+    @app.route('/api/documents/<int:doc_id>/archive', methods=['POST'])
+    @jwt_required()
+    def archive_document(doc_id):
+        """Move an approved document to secure archive (Admin only)."""
+        from models import Document, DocumentAudit
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
+        if current_user.role != 'Admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        doc = db.session.get(Document, doc_id)
+        if not doc:
+            return jsonify({'error': 'Document not found'}), 404
+        doc.status = 'Archived'
+        doc.category = 'Secure Archive'
+        doc.is_encrypted = True
+        audit = DocumentAudit(document_id=doc_id, user_id=current_user_id,
+                              action=f'Securely archived by {current_user.username}')
+        db.session.add(audit)
+        db.session.commit()
+        return jsonify({
+            'id': doc.id, 'status': doc.status, 'category': doc.category,
+            'title': doc.title, 'content': doc.content,
+            'created': doc.created_at.isoformat()
+        }), 200
+
+    # ───────────────────────────────────────────────────────────────────────────
 
     @app.route('/api/documents/<int:doc_id>', methods=['DELETE'])
     @jwt_required()

@@ -37,6 +37,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
     type: 'meeting', recurrence: 'none', location: '',
     meeting_link: '', priority: 'Medium',
     mandatory_attendees: '', optional_attendees: '',
+    is_protected: false, is_strategic: false
   });
   const [activeSection, setActiveSection] = useState('details');
 
@@ -56,12 +57,14 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
       priority: event?.priority || 'Medium',
       mandatory_attendees: parseAttendees(event?.mandatory_attendees),
       optional_attendees: parseAttendees(event?.optional_attendees),
+      is_protected: event?.is_protected || false,
+      is_strategic: event?.is_strategic || false
     });
   }, [isOpen, event]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = (e) => {
@@ -79,6 +82,8 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
       priority: form.priority,
       mandatory_attendees: splitAttendees(form.mandatory_attendees),
       optional_attendees: splitAttendees(form.optional_attendees),
+      is_protected: form.is_protected,
+      is_strategic: form.is_strategic
     };
     onSave(payload);
   };
@@ -197,6 +202,27 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                     <option value="weekly">{t('recurrence_weekly')}</option>
                     <option value="monthly">{t('recurrence_monthly')}</option>
                   </select>
+                </div>
+
+                <div className="form-row" style={{ marginTop: '12px', gap: '20px' }}>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="is_protected"
+                      checked={form.is_protected}
+                      onChange={handleChange}
+                    />
+                    <span>🛡️ {t('protected_slot')}</span>
+                  </label>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="is_strategic"
+                      checked={form.is_strategic}
+                      onChange={handleChange}
+                    />
+                    <span>🎯 {t('strategic_priority')}</span>
+                  </label>
                 </div>
 
                 <div className="form-group">

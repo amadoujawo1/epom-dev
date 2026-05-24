@@ -1,0 +1,28 @@
+[+] Using Railway PostgreSQL database
+[*] Database URL: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+[*] Initializing database...
+[+] Tables created with metadata!
+[+] Tables created with create_all!
+Creating default admin user...
+[+] Default admin user created! Username: admin, Password: admin123
+[+] Admin user verified: admin
+[+] Database tables verified: ['personnel', 'users', 'events', 'resources', 'documents', 'projects', 'attendance_records', 'notifications', 'actions', 'document_audits']
+Using database: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://172.24.0.2:5007
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+[+] Using Railway PostgreSQL database
+[*] Database URL: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+[*] Initializing database...
+[+] Tables created with metadata!
+[+] Tables created with create_all!
+[+] Admin user already exists
+[+] Database tables verified: ['personnel', 'users', 'events', 'resources', 'documents', 'projects', 'attendance_records', 'notifications', 'actions', 'document_audits']
+Using database: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+ * Debugger is active!
+ * Debugger PIN: 168-238-972

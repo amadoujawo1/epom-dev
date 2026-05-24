@@ -33,6 +33,8 @@ export default function ETime({ searchQuery, notify }) {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [typeFilter, setTypeFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
+  const [strategicFilter, setStrategicFilter] = useState(false)
+  const [protectedFilter, setProtectedFilter] = useState(false)
 
   useEffect(() => { fetchEvents() }, [month, year])
 
@@ -52,7 +54,9 @@ export default function ETime({ searchQuery, notify }) {
                          ev.location?.toLowerCase().includes((searchQuery || '').toLowerCase())
     const matchesType = typeFilter === 'all' || ev.type === typeFilter
     const matchesPriority = priorityFilter === 'all' || ev.priority === priorityFilter
-    return matchesSearch && matchesType && matchesPriority
+    const matchesStrategic = !strategicFilter || ev.is_strategic
+    const matchesProtected = !protectedFilter || ev.is_protected
+    return matchesSearch && matchesType && matchesPriority && matchesStrategic && matchesProtected
   })
 
   const totalMonthEvents = events.length
@@ -179,6 +183,16 @@ export default function ETime({ searchQuery, notify }) {
                 {t('priority_low_label')}
               </button>
             </div>
+
+            <div className="sidebar-title" style={{ marginTop: '20px' }}>{t('special_filters')}</div>
+            <div className="filter-group">
+              <button className={`filter-btn ${strategicFilter ? 'active' : ''}`} onClick={() => setStrategicFilter(!strategicFilter)}>
+                <span>🎯</span> {t('strategic_priority')}
+              </button>
+              <button className={`filter-btn ${protectedFilter ? 'active' : ''}`} onClick={() => setProtectedFilter(!protectedFilter)}>
+                <span>🛡️</span> {t('protected_slot')}
+              </button>
+            </div>
           </div>
 
           <div className="sidebar-card">
@@ -266,7 +280,12 @@ export default function ETime({ searchQuery, notify }) {
                                   title={`${ev.type?.toUpperCase()}\n${ev.priority || 'Medium'}\n${ev.description || ''}`}
                                   onDoubleClick={() => openEdit(ev)}
                                 >
-                                  <span>{getTypeIcon(ev.type)} {ev.title}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}>
+                                    <span>{getTypeIcon(ev.type)}</span>
+                                    <span className="event-title-text" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
+                                    {ev.is_strategic && <span title={t('strategic_priority')}>🎯</span>}
+                                    {ev.is_protected && <span title={t('protected_slot')}>🛡️</span>}
+                                  </div>
                                   <button
                                     className="cal-event-delete-btn"
                                     onClick={(e) => { e.stopPropagation(); deleteEvent(ev.id) }}
@@ -315,6 +334,8 @@ export default function ETime({ searchQuery, notify }) {
                             {ev.priority && (
                               <span className={`priority-badge priority-${ev.priority.toLowerCase()}`}>{ev.priority}</span>
                             )}
+                            {ev.is_strategic && <span className="type-badge" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>🎯 {t('strategic_priority')}</span>}
+                            {ev.is_protected && <span className="type-badge" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>🛡️ {t('protected_slot')}</span>}
                           </div>
                           {ev.description && <p className="timeline-desc">{ev.description}</p>}
                           <div className="timeline-meta">

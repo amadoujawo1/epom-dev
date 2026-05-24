@@ -1,0 +1,40 @@
+[+] Using Railway PostgreSQL database
+[*] Database URL: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+[*] Initializing database...
+[+] Tables created with metadata!
+[+] Tables created with create_all!
+[+] Admin user already exists
+[+] Database tables verified: ['personnel', 'users', 'events', 'resources', 'documents', 'projects', 'attendance_records', 'notifications', 'actions', 'document_audits']
+Using database: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.24.0.2:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+[+] Using Railway PostgreSQL database
+[*] Database URL: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+[*] Initializing database...
+[+] Tables created with metadata!
+[+] Tables created with create_all!
+[+] Admin user already exists
+[+] Database tables verified: ['personnel', 'users', 'events', 'resources', 'documents', 'projects', 'attendance_records', 'notifications', 'actions', 'document_audits']
+Using database: postgresql://postgres:password@helium/heliumdb?sslmode=disable
+ * Debugger is active!
+ * Debugger PIN: 116-064-797
+127.0.0.1 - - [23/May/2026 07:48:29] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:30] "GET /assets/index-BZVN8OKC.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:30] "GET /assets/index-acEcpfSr.js HTTP/1.1" 200 -
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jwt/api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 19 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+127.0.0.1 - - [23/May/2026 07:48:32] "[31m[1mGET /api/auth/me HTTP/1.1[0m" 401 -
+127.0.0.1 - - [23/May/2026 07:48:32] "GET /api/stats HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:32] "[36mGET / HTTP/1.1[0m" 304 -
+127.0.0.1 - - [23/May/2026 07:48:33] "[36mGET /assets/index-BZVN8OKC.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [23/May/2026 07:48:33] "[36mGET /assets/index-acEcpfSr.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [23/May/2026 07:48:35] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:35] "GET /assets/index-BZVN8OKC.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:35] "GET /assets/index-acEcpfSr.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/May/2026 07:48:35] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

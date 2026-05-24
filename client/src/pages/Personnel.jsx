@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetch } from '../utils/api'
+import { useLanguage } from '../context/LanguageContext'
 
 function getInitials(name = '') {
   return name.trim().split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('')
@@ -16,6 +17,7 @@ function avatarGradient(name = '') {
 }
 
 export default function Personnel({ searchQuery, notify }) {
+  const { t } = useLanguage()
   const [people, setPeople]     = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -141,110 +143,137 @@ export default function Personnel({ searchQuery, notify }) {
 
   return (
     <div className="personnel-page">
-      {/* ── Header card ── */}
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="personnel-header">
-          <div>
-            <div className="card-title">Personnel Management</div>
-            <p className="personnel-subtitle">Administrative control over user roles, access, and org hierarchy.</p>
+      {/* ── Main Container ── */}
+      <div className="card" style={{ padding: '0', overflow: 'hidden', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', borderRadius: '24px' }}>
+        {/* Header Section */}
+        <div style={{ padding: '32px 32px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>
+              {t('page_personnel')}
+            </h2>
+            <span style={{ background: '#0f172a', color: '#fff', padding: '4px 10px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
+              TOTAL: {people.length}
+            </span>
           </div>
-          <button className="btn btn-primary" onClick={() => openForm()}>
-            <span>＋</span> Add Personnel
-          </button>
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="search-container" style={{ maxWidth: '320px', margin: 0 }}>
+              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input 
+                placeholder={t('search_placeholder')} 
+                value={searchQuery || ''} 
+                readOnly
+                style={{ background: '#f8fafc', borderRadius: '12px', height: '48px', paddingLeft: '44px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => openForm()}
+                style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
+              >
+                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> ADD PERSONNEL
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="personnel-stats-row">
-          <div className="pstat-card pstat-total">
-            <div className="pstat-num">{stats.total}</div>
-            <div className="pstat-label">👥 Total</div>
+        {/* ── Table / empty / loading ── */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <div className="loading-spinner-lg" style={{ margin: '0 auto 16px' }} />
+            <span style={{ color: '#94a3b8', fontWeight: 600 }}>Loading personnel…</span>
           </div>
-          <div className="pstat-card pstat-active">
-            <div className="pstat-num">{stats.active}</div>
-            <div className="pstat-label">✅ Active</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8', fontSize: 'var(--fs-md)', fontWeight: 600, letterSpacing: '0.5px' }}>
+            {people.length === 0 ? 'NO PERSONNEL RECORDS FOUND.' : 'NO RESULTS MATCH YOUR SEARCH.'}
           </div>
-          <div className="pstat-card pstat-inactive">
-            <div className="pstat-num">{stats.inactive}</div>
-            <div className="pstat-label">⛔ Inactive</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Table / empty / loading ── */}
-      {loading ? (
-        <div className="card personnel-loading">
-          <div className="loading-spinner-lg" />
-          <span>Loading personnel…</span>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="card personnel-empty">
-          <div className="empty-icon">👤</div>
-          <div className="empty-title">{people.length === 0 ? 'No personnel yet' : 'No results found'}</div>
-          <div className="empty-sub">
-            {people.length === 0
-              ? 'Start by adding the first team member.'
-              : 'Try adjusting your search.'}
-          </div>
-          {people.length === 0 && (
-            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => openForm()}>
-              Add First Personnel
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Username</th>
-                <th>Contact</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => (
-                <tr key={p.id} style={{ opacity: p.status === 'Inactive' ? 0.65 : 1 }}>
-                  <td>
-                    <div className="employee-cell">
-                      <div className="emp-avatar" style={{ background: avatarGradient(p.name) }}>
-                        {getInitials(p.name)}
-                      </div>
-                      <span className="emp-name">{p.name}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="personnel-username">{p.username ? `@${p.username}` : '—'}</span>
-                  </td>
-                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.email || '—'}</td>
-                  <td>{p.department || '—'}</td>
-                  <td>
-                    <span className="role-pill">{p.role || 'User'}</span>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${p.status === 'Active' ? 'badge-success' : 'badge-error'}`}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => toggleStatus(p)}
-                      title="Click to toggle"
-                    >
-                      {p.status || 'Active'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button className="tbl-btn tbl-edit" onClick={() => openForm(p)}>✏️ Edit</button>
-                      <button className="tbl-btn tbl-del" onClick={() => deletePerson(p.id)}>🗑 Delete</button>
-                    </div>
-                  </td>
+        ) : (
+          <div style={{ padding: '0 0 32px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
+                  {['Employee', 'Username', 'Department', 'Role', 'Status', 'Actions'].map(col => (
+                    <th key={col} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      {col}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {filtered.map(p => (
+                  <tr key={p.id} className="action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s', opacity: p.status === 'Inactive' ? 0.6 : 1 }}>
+                    <td style={{ padding: '20px 32px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="avatar" style={{ width: '36px', height: '36px', fontSize: 'var(--fs-sm)', background: avatarGradient(p.name) }}>
+                          {getInitials(p.name)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)' }}>{p.name}</div>
+                          <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>{p.email || 'No email'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    
+                    <td style={{ padding: '20px 32px' }}>
+                      <span style={{ fontWeight: 600, color: '#64748b', fontSize: 'var(--fs-sm)' }}>@{p.username}</span>
+                    </td>
+
+                    <td style={{ padding: '20px 32px', color: '#334155', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
+                      {p.department || '—'}
+                    </td>
+
+                    <td style={{ padding: '20px 32px' }}>
+                      <span style={{ 
+                        padding: '4px 10px', 
+                        borderRadius: '6px', 
+                        fontSize: '11px', 
+                        fontWeight: 700, 
+                        background: '#f1f5f9', 
+                        color: '#475569',
+                        textTransform: 'uppercase'
+                      }}>
+                        {p.role || 'User'}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '20px 32px' }}>
+                      <span 
+                        onClick={() => toggleStatus(p)}
+                        style={{ 
+                          padding: '6px 12px', 
+                          borderRadius: '8px', 
+                          fontSize: 'var(--fs-xs)', 
+                          fontWeight: 700, 
+                          textTransform: 'uppercase',
+                          background: p.status === 'Active' ? '#ecfdf5' : '#fff1f2',
+                          color: p.status === 'Active' ? '#10b981' : '#f43f5e',
+                          border: `1px solid ${p.status === 'Active' ? '#d1fae5' : '#ffe4e6'}`,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {p.status || 'Active'}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '20px 32px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="ctrl-btn" onClick={() => openForm(p)} title="Edit" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
+                          ✏️
+                        </button>
+                        <button className="ctrl-btn" style={{ color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px' }} onClick={() => deletePerson(p.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* ── Premium Modal ── */}
       {showForm && (
@@ -394,7 +423,7 @@ export default function Personnel({ searchQuery, notify }) {
                     </div>
                   </div>
 
-                  <div className="field-group field-group--status">
+                  <div className="field-group field-group--full">
                     <div className="field-icon">🔆</div>
                     <div className="field-inner">
                       <label className="field-label">Status</label>

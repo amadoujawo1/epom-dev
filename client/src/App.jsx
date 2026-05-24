@@ -7,6 +7,7 @@ import Reports from './pages/Reports'
 import Login from './pages/Login'
 import { apiFetch } from './utils/api'
 import { useLanguage } from './context/LanguageContext'
+import logo from './assets/logo.png'
 
 function loadStoredUser() {
   try { return JSON.parse(localStorage.getItem('user') || 'null') } catch { return null }
@@ -33,6 +34,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('theme') === 'dark')
   const [notifications, setNotifications] = useState([])
+  const [recentActions, setRecentActions] = useState([])
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -47,6 +49,7 @@ export default function App() {
 
   const fetchStats = () => {
     apiFetch('/api/stats').then(setStats).catch(() => {})
+    apiFetch('/api/actions').then(data => setRecentActions((data || []).slice(0, 5))).catch(() => {})
   }
 
   useEffect(() => {
@@ -140,11 +143,10 @@ export default function App() {
         <div className="sidebar-top">
           <div className="brand">
             <div className="logo-box">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Africa_%28orthographic_projection%29.svg" alt="ePOM" className="icon-africa" />
+              <img src={logo} alt="ePOM" className="icon-africa" />
             </div>
             <div>
               <span className="brand-name">ePOM</span>
-              <span className="brand-tag">{t('brand_tag')}</span>
             </div>
           </div>
           <button className="btn-digi">{t('digi_delivery')}</button>
@@ -400,6 +402,44 @@ export default function App() {
                         <div style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: 800, color, lineHeight: 1 }}>{val}</div>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* New Directives Table */}
+                <div className="card" style={{ gridColumn: 'span 2' }}>
+                  <div className="card-header">
+                    <div>
+                      <div className="card-title">🆕 {t('new_directives_table')}</div>
+                      <div className="card-subtitle">{t('new_directives_desc')}</div>
+                    </div>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('title')}</th>
+                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('owner')}</th>
+                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('status')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentActions.length === 0 ? (
+                          <tr><td colSpan="3" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>{t('no_items')}</td></tr>
+                        ) : (
+                          recentActions.map(a => (
+                            <tr key={a.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                              <td style={{ padding: '12px 16px', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{a.title}</td>
+                              <td style={{ padding: '12px 16px', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>{a.owner}</td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <span className={`badge badge-${(a.status || '').toLowerCase().replace(' ', '-')}`} style={{ fontSize: 'var(--fs-2xs)' }}>
+                                  {a.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>

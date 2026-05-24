@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './Login.css'
 import { useLanguage } from '../context/LanguageContext'
+import logo from '../assets/logo.png'
 
 export default function Login({ onLogin }) {
   const { t, lang, setLang } = useLanguage()
@@ -99,11 +100,6 @@ export default function Login({ onLogin }) {
       })
   }
 
-  const fillDemoCredentials = (role) => {
-    setError('')
-    if (role === 'admin') { setUsername('admin'); setPassword('admin123') }
-  }
-
   const handleMfaChange = (value, index) => {
     if (value && !/^\d$/.test(value)) return
     const newCode = [...mfaCode]
@@ -174,47 +170,14 @@ export default function Login({ onLogin }) {
         </button>
       </div>
 
-      {/* Left panel */}
-      <div className="login-panel-left">
-        <div className="login-brand-header">
-          <div className="login-brand-logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Africa_%28orthographic_projection%29.svg" alt="ePOM logo" />
-          </div>
-          <span>ePOM</span>
-        </div>
-
-        <div className="login-hero-content">
-          <span className="login-badge">{t('login_badge')}</span>
-          <h1 className="login-hero-title">
-            {t('login_hero_title_1')} <span>{t('login_hero_title_2')}</span>
-          </h1>
-          <p className="login-hero-desc">{t('login_hero_desc')}</p>
-
-          <div className="login-stats-grid">
-            <div className="login-stat-card">
-              <div className="login-stat-num">{lang === 'fr' ? 'ACTIF' : 'ACTIVE'}</div>
-              <div className="login-stat-label">{t('login_stat_node')}</div>
-            </div>
-            <div className="login-stat-card">
-              <div className="login-stat-num">AES-256</div>
-              <div className="login-stat-label">{t('login_stat_enc')}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="login-brand-footer">
-          © {new Date().getFullYear()} {t('login_footer')}
-        </div>
-      </div>
-
-      {/* Right panel */}
       <div className="login-panel-right">
         <div className={`login-card ${isShake ? 'login-alert-shake' : ''}`}>
-
-          <div className="login-card-logo-mob">
-            <div className="login-brand-logo">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Africa_%28orthographic_projection%29.svg" alt="ePOM logo" />
+          
+          <div className="login-brand">
+            <div className="login-logo">
+              <img src={logo} alt="ePOM" />
             </div>
+            <span className="login-brand-name">ePOM</span>
           </div>
 
           <div className="login-card-header">
@@ -286,20 +249,6 @@ export default function Login({ onLogin }) {
                   <><div className="login-spinner"></div>{t('login_authenticating')}</>
                 ) : t('login_authorize')}
               </button>
-
-              <div className="login-demo-section">
-                <div className="login-demo-title">{t('login_demo_title')}</div>
-                <div className="login-demo-chips">
-                  <button
-                    type="button"
-                    className="login-demo-chip"
-                    onClick={() => fillDemoCredentials('admin')}
-                    disabled={loading}
-                  >
-                    {t('login_demo_admin')}
-                  </button>
-                </div>
-              </div>
             </form>
           ) : (
             <form onSubmit={submitMfa} className="login-form">

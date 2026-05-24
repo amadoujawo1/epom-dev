@@ -1,5 +1,6 @@
 /* src/pages/EInfo.css */
-/* Glassmorphic note form */
+
+/* ── Glassmorphic note form ────────────────────────────────────────── */
 .note-form {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px) saturate(150%);
@@ -13,47 +14,311 @@
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.note-form input,
-.note-form textarea,
-.note-form select {
-  width: 100%;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 8px;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-family: var(--login-font-body);
-}
-
-.note-form input:focus,
-.note-form textarea:focus,
-.note-form select:focus {
-  border-color: #6366f1;
-  outline: none;
-  background: rgba(255,255,255,0.12);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
-}
-
-.note-form button {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  border: none;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
+/* ── Auto-Briefing Banner ────────────────────────────────────────────── */
+.briefing-banner {
+  background: linear-gradient(135deg, rgba(15,23,42,0.96) 0%, rgba(30,42,80,0.96) 100%);
+  border: 1px solid rgba(99,102,241,0.35);
+  border-radius: 14px;
+  padding: 14px 18px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  user-select: none;
+  animation: fadeInDown 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.15);
 }
 
-.note-form button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99,102,241,0.4);
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Preview toggle */
+.briefing-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.briefing-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6366f1;
+  box-shadow: 0 0 0 0 rgba(99,102,241,0.7);
+  animation: pulseRing 1.8s ease-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(99,102,241,0.7); }
+  70%  { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+  100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+}
+
+.briefing-banner-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+}
+
+.briefing-toggle-icon {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  transition: transform 0.2s;
+}
+
+.briefing-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.briefing-meeting-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.2s;
+}
+
+.briefing-meeting-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.briefing-meeting-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.briefing-meeting-info { flex: 1; min-width: 0; }
+
+.briefing-meeting-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.briefing-meeting-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 4px;
+}
+
+.briefing-meeting-desc {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.briefing-type-badge {
+  background: rgba(99,102,241,0.2);
+  color: #a5b4fc;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.briefing-priority-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Sidebar Tabs ────────────────────────────────────────────────────── */
+.einfo-side-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.einfo-side-tab {
+  flex: 1;
+  padding: 7px 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.einfo-side-tab:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+
+.einfo-side-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── Templates list ──────────────────────────────────────────────────── */
+.einfo-templates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.15s;
+}
+
+.template-card:hover {
+  border-color: var(--primary);
+  background: rgba(99,102,241,0.06);
+  transform: translateX(3px);
+}
+
+.template-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}
+
+.template-info { flex: 1; min-width: 0; }
+
+.template-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.template-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.template-arrow {
+  font-size: 18px;
+  color: var(--text-muted);
+  transition: color 0.18s, transform 0.18s;
+}
+
+.template-card:hover .template-arrow {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+/* ── Workflow action buttons ──────────────────────────────────────────── */
+.doc-workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-warning {
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+
+.btn-warning:hover {
+  background: rgba(245,158,11,0.2);
+  border-color: rgba(245,158,11,0.5);
+}
+
+.btn-success {
+  background: rgba(16,185,129,0.12);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+
+.btn-success:hover {
+  background: rgba(16,185,129,0.2);
+  border-color: rgba(16,185,129,0.5);
+}
+
+.btn-archive {
+  background: rgba(99,102,241,0.1);
+  color: #818cf8;
+  border: 1px solid rgba(99,102,241,0.25);
+}
+
+.btn-archive:hover {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.45);
+}
+
+/* ── Archived doc card highlight ────────────────────────────────────── */
+.doc-card-archived {
+  border-color: rgba(99,102,241,0.25) !important;
+  background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 100%);
+}
+
+/* ── Document viewer modal ───────────────────────────────────────────── */
+.doc-view-modal {
+  background: var(--card-bg);
+  border-radius: 18px;
+  width: 760px;
+  max-width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  animation: fadeInUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+.doc-view-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.doc-view-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+
+/* ── Preview pane ────────────────────────────────────────────────────── */
 .preview-toggle {
   display: flex;
   align-items: center;
