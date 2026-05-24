@@ -15,8 +15,37 @@ from cryptography.hazmat.primitives import padding
 # Load environment variables
 load_dotenv()
 
+def create_app(test_config=None):
+    app = Flask(__name__, static_folder='../client/dist', static_url_path='/')
+    
+    # Production Security Configuration
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-key-123'),
+        JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'jwt-dev-key'),
+        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///instance/epom_dev.db'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        MAX_CONTENT_LENGTH=16 * 1024 * 1024  # 16MB limit
+    )
 
-def _split_full_name(full_name):
+    if test_config:
+        app.config.from_mapping(test_config)
+
+    CORS(app, resources={r"/api/*": {"origins": os.environ.get('CORS_ORIGINS', '*')}})
+    
+    # Initialize DB
+    from models import db
+    db.init_app(app)
+    
+    jwt = JWTManager(app)
+
+    @app.route('/')
+    def serve():
+        return send_from_directory(app.static_folder, 'index.html')
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return send_from_directory(app.static_folder, 'index.html')
+
     parts = (full_name or '').strip().split(None, 1)
     if not parts:
         return '', ''
