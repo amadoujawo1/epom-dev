@@ -567,11 +567,95 @@ body, html, #root {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: var(--error);
   border-radius: 50%;
-  border: 1.5px solid var(--card-bg);
+  border: 2px solid var(--card-bg);
+}
+
+/* User Notification Panel */
+.user-notif-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 12px;
+  width: 320px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--modal-shadow);
+  z-index: 1000;
+  overflow: hidden;
+  animation: modalSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-notif-header {
+  padding: 14px 16px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.user-notif-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.user-notif-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.user-notif-item:last-child {
+  border-bottom: none;
+}
+
+.user-notif-item:hover {
+  background: var(--bg-secondary);
+}
+
+.user-notif-item.unread {
+  background: rgba(99, 102, 241, 0.03);
+  border-left: 3px solid var(--primary);
+}
+
+.user-notif-msg {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.user-notif-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.user-notif-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.btn-close-sm {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-close-sm:hover {
+  color: var(--text-main);
 }
 
 /* ═══════════════════════════════════════

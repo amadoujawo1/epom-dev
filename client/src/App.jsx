@@ -36,6 +36,8 @@ export default function App() {
   const [notifications, setNotifications] = useState([])
   const [recentActions, setRecentActions] = useState([])
   const [upcomingEvents, setUpcomingEvents] = useState([])
+  const [userNotifications, setUserNotifications] = useState([])
+  const [showNotifPanel, setShowNotifPanel] = useState(false)
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -51,6 +53,7 @@ export default function App() {
   const fetchStats = () => {
     apiFetch('/api/stats').then(setStats).catch(() => {})
     apiFetch('/api/actions').then(data => setRecentActions((data || []).slice(0, 5))).catch(() => {})
+    apiFetch('/api/notifications').then(data => setUserNotifications(data || [])).catch(() => {})
     apiFetch('/api/calendar').then(data => {
       const now = new Date()
       const upcoming = (data || [])
@@ -84,7 +87,16 @@ export default function App() {
     localStorage.removeItem('user')
     setCurrentUser(null)
     setShowProfile(false)
+    setShowNotifPanel(false)
     setToken(null)
+  }
+
+  const markRead = (id) => {
+    apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' })
+      .then(() => {
+        setUserNotifications(prev => prev.filter(n => n.id !== id))
+      })
+      .catch(() => {})
   }
 
   if (!token) return <Login onLogin={() => setToken(localStorage.getItem('token'))} />
@@ -236,12 +248,38 @@ export default function App() {
                 : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
               }
             </button>
-            <button className="ctrl-btn" title={t('notifications')}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              </svg>
-              {stats?.action_stats?.overdue > 0 && <span className="notif-dot" />}
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button className="ctrl-btn" onClick={() => setShowNotifPanel(!showNotifPanel)} title={t('notifications')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                {userNotifications.filter(n => !n.is_read).length > 0 && <span className="notif-dot" />}
+              </button>
+              
+              {showNotifPanel && (
+                <div className="user-notif-panel">
+                  <div className="user-notif-header">
+                    <span>{t('notifications')}</span>
+                    <button className="btn-close-sm" onClick={() => setShowNotifPanel(false)}>✕</button>
+                  </div>
+                  <div className="user-notif-list">
+                    {userNotifications.length === 0 ? (
+                      <div className="user-notif-empty">No new notifications</div>
+                    ) : (
+                      userNotifications.map(n => (
+                        <div key={n.id} className={`user-notif-item ${n.is_read ? 'read' : 'unread'}`} onClick={() => {
+                          if (n.link) { setPage(n.link.replace('/', '')); setShowNotifPanel(false); }
+                          markRead(n.id);
+                        }}>
+                          <div className="user-notif-msg">{n.message}</div>
+                          <div className="user-notif-time">{new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button className="ctrl-btn" onClick={() => setShowProfile(true)} title={t('profile')}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
