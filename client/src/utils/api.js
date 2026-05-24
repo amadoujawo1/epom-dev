@@ -7,11 +7,10 @@ export async function apiFetch(url, options = {}) {
   
   if (options.body && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
-  } else if (!options.body) {
-    headers['Content-Type'] = 'application/json'
   }
   
-  if (token) {
+  // Enhanced token check to avoid sending "null" or "undefined" as strings
+  if (token && token !== 'null' && token !== 'undefined') {
     headers['Authorization'] = `Bearer ${token}`
   }
   

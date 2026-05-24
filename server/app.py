@@ -5,7 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import bcrypt
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from werkzeug.utils import secure_filename
 import base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -103,6 +103,8 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-key-123'),
         JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'jwt-dev-key'),
+        JWT_ACCESS_TOKEN_EXPIRES=timedelta(days=30), # Longer expiration for mobile/production
+        JWT_ERROR_MESSAGE_KEY='message', # Standardize error key
         SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         MAX_CONTENT_LENGTH=16 * 1024 * 1024
@@ -146,6 +148,47 @@ def create_app(test_config=None):
     from models import db, User, Event, Document, Action, Personnel
     db.init_app(app)
     jwt = JWTManager(app)
+
+    # Custom JWT Error Handlers to help debug mobile 422 errors
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return jsonify({
+            'error': 'Invalid Token',
+            'message': error,
+            'details': 'The provided token is malformed or invalid.'
+        }), 422
+
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        return jsonify({
+            'error': 'Missing Token',
+            'message': error,
+            'details': 'Authorization header is missing or malformed.'
+        }), 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({
+            'error': 'Token Expired',
+            'message': 'Your session has expired. Please log in again.',
+            'details': 'The JWT token has expired.'
+        }), 401
+
+    @jwt.needs_fresh_token_loader
+    def token_not_fresh_callback(jwt_header, jwt_payload):
+        return jsonify({
+            'error': 'Fresh Token Required',
+            'message': 'A fresh token is required to access this resource.',
+            'details': 'The token is valid but not fresh.'
+        }), 401
+
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return jsonify({
+            'error': 'Token Revoked',
+            'message': 'This token has been revoked.',
+            'details': 'The token is no longer valid.'
+        }), 401
 
     with app.app_context():
         # Initialize database tables if they don't exist
