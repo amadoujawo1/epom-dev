@@ -466,31 +466,90 @@ export default function App() {
               <div className="dashboard-section">
                 <div className="section-header">
                   <span className="section-label">{t('dash_upcoming_events')}</span>
-                  <button className="btn-text" onClick={() => setPage('etime')}>{t('dash_view_calendar')}</button>
+                  <button className="btn-text" onClick={() => setPage('etime')} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {t('dash_view_calendar')}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
                 </div>
-                <div className="card" style={{ padding: 0 }}>
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                   <div className="table-responsive">
                     <table className="directive-table">
                       <thead>
                         <tr>
-                          <th>{t('event')}</th>
+                          <th style={{ paddingLeft: '24px' }}>{t('event')}</th>
                           <th>{t('event_date_label')}</th>
-                          <th>{t('event_start_time')}</th>
+                          <th style={{ paddingRight: '24px' }}>{t('event_start_time')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {upcomingEvents.length > 0 ? (
-                          upcomingEvents.map(event => (
-                            <tr key={event.id}>
-                              <td className="font-bold">{event.title}</td>
-                              <td>{new Date(event.start_time).toLocaleDateString()}</td>
-                              <td>{new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                            </tr>
-                          ))
+                          upcomingEvents.map(event => {
+                            const eventDate = new Date(event.start_time);
+                            const isToday = eventDate.toDateString() === new Date().toDateString();
+                            
+                            const getIcon = (type) => {
+                              if (type === 'meeting') return '🤝';
+                              if (type === 'briefing') return '📋';
+                              if (type === 'travel') return '✈️';
+                              return '🗓️';
+                            };
+
+                            return (
+                              <tr key={event.id} className="action-row-hover">
+                                <td style={{ padding: '16px 24px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ 
+                                      width: '32px', 
+                                      height: '32px', 
+                                      borderRadius: '8px', 
+                                      background: 'var(--primary-subtle)', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      fontSize: '16px'
+                                    }}>
+                                      {getIcon(event.type)}
+                                    </div>
+                                    <div>
+                                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: 'var(--fs-md)' }}>
+                                        {event.title}
+                                        {event.priority === 'High' && <span style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--error)', background: 'var(--error-subtle)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800 }}>High</span>}
+                                      </div>
+                                      <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        {event.type || 'Event'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '16px 0' }}>
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ fontWeight: 600, color: isToday ? 'var(--primary)' : 'var(--text-sub)' }}>
+                                      {isToday ? 'Today' : eventDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '16px 24px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-main)' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--text-faint)' }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
                         ) : (
                           <tr>
-                            <td colSpan="3" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-                              {t('dash_no_events')}
+                            <td colSpan="3" style={{ padding: '60px 24px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ fontSize: '40px', opacity: 0.3 }}>🗓️</div>
+                                <div style={{ fontWeight: 700, color: 'var(--text-sub)', fontSize: 'var(--fs-lg)' }}>{t('dash_no_events')}</div>
+                                <div style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-sm)', maxWidth: '240px', margin: '0 auto' }}>
+                                  Your schedule is clear. Use the calendar to organize your tactical priorities.
+                                </div>
+                                <button className="btn btn-primary btn-sm" onClick={() => setPage('etime')} style={{ marginTop: '8px' }}>
+                                  {t('dash_view_calendar')}
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )}
