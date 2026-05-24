@@ -35,6 +35,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('theme') === 'dark')
   const [notifications, setNotifications] = useState([])
   const [recentActions, setRecentActions] = useState([])
+  const [upcomingEvents, setUpcomingEvents] = useState([])
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -50,6 +51,14 @@ export default function App() {
   const fetchStats = () => {
     apiFetch('/api/stats').then(setStats).catch(() => {})
     apiFetch('/api/actions').then(data => setRecentActions((data || []).slice(0, 5))).catch(() => {})
+    apiFetch('/api/calendar').then(data => {
+      const now = new Date()
+      const upcoming = (data || [])
+        .filter(e => new Date(e.start_time) >= now)
+        .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
+        .slice(0, 5)
+      setUpcomingEvents(upcoming)
+    }).catch(() => {})
   }
 
   useEffect(() => {
@@ -406,42 +415,76 @@ export default function App() {
                 </div>
 
                 {/* New Directives Table */}
-                <div className="card" style={{ gridColumn: 'span 2' }}>
-                  <div className="card-header">
-                    <div>
-                      <div className="card-title">🆕 {t('new_directives_table')}</div>
-                      <div className="card-subtitle">{t('new_directives_desc')}</div>
-                    </div>
-                  </div>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <div className="dashboard-section">
+                <div className="section-header">
+                  <span className="section-label">{t('dash_new_directives')}</span>
+                  <button className="btn-text" onClick={() => setPage('eaction')}>{t('dash_view_all')}</button>
+                </div>
+                <div className="card" style={{ padding: 0 }}>
+                  <div className="table-responsive">
+                    <table className="directive-table">
                       <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('title')}</th>
-                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('owner')}</th>
-                          <th style={{ padding: '12px 16px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('status')}</th>
+                        <tr>
+                          <th>{t('directive')}</th>
+                          <th>{t('owner')}</th>
+                          <th>{t('status')}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {recentActions.length === 0 ? (
-                          <tr><td colSpan="3" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>{t('no_items')}</td></tr>
-                        ) : (
-                          recentActions.map(a => (
-                            <tr key={a.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                              <td style={{ padding: '12px 16px', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{a.title}</td>
-                              <td style={{ padding: '12px 16px', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>{a.owner}</td>
-                              <td style={{ padding: '12px 16px' }}>
-                                <span className={`badge badge-${(a.status || '').toLowerCase().replace(' ', '-')}`} style={{ fontSize: 'var(--fs-2xs)' }}>
-                                  {a.status}
-                                </span>
-                              </td>
+                        {recentActions.map(action => (
+                          <tr key={action.id}>
+                            <td className="font-bold">{action.title}</td>
+                            <td>{action.owner}</td>
+                            <td>
+                              <span className={`badge badge-${action.status === 'Completed' ? 'success' : action.status === 'Overdue' ? 'error' : 'warning'}`}>
+                                {action.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upcoming Events Table */}
+              <div className="dashboard-section">
+                <div className="section-header">
+                  <span className="section-label">{t('dash_upcoming_events')}</span>
+                  <button className="btn-text" onClick={() => setPage('etime')}>{t('dash_view_calendar')}</button>
+                </div>
+                <div className="card" style={{ padding: 0 }}>
+                  <div className="table-responsive">
+                    <table className="directive-table">
+                      <thead>
+                        <tr>
+                          <th>{t('event')}</th>
+                          <th>{t('event_date_label')}</th>
+                          <th>{t('event_start_time')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {upcomingEvents.length > 0 ? (
+                          upcomingEvents.map(event => (
+                            <tr key={event.id}>
+                              <td className="font-bold">{event.title}</td>
+                              <td>{new Date(event.start_time).toLocaleDateString()}</td>
+                              <td>{new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                             </tr>
                           ))
+                        ) : (
+                          <tr>
+                            <td colSpan="3" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+                              {t('dash_no_events')}
+                            </td>
+                          </tr>
                         )}
                       </tbody>
                     </table>
                   </div>
                 </div>
+              </div>
               </div>
             </section>
           )}
