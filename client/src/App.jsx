@@ -462,40 +462,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* New Directives Table */}
-              <div className="dashboard-section">
-                <div className="section-header">
-                  <span className="section-label">{t('dash_new_directives')}</span>
-                  <button className="btn-text" onClick={() => setPage('eaction')}>{t('dash_view_all')}</button>
-                </div>
-                <div className="card" style={{ padding: 0 }}>
-                  <div className="table-responsive">
-                    <table className="directive-table">
-                      <thead>
-                        <tr>
-                          <th>{t('directive')}</th>
-                          <th>{t('owner')}</th>
-                          <th>{t('status')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentActions.map(action => (
-                          <tr key={action.id}>
-                            <td className="font-bold">{action.title}</td>
-                            <td>{action.owner}</td>
-                            <td>
-                              <span className={`badge badge-${action.status === 'Completed' ? 'success' : action.status === 'Overdue' ? 'error' : 'warning'}`}>
-                                {action.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
               {/* Upcoming Events Table */}
               <div className="dashboard-section">
                 <div className="section-header">
