@@ -182,13 +182,15 @@ export default function Personnel({ searchQuery, notify }) {
             </div>
             
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                className="btn btn-primary add-personnel-btn" 
-                onClick={() => openForm()}
-                style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
-              >
-                <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">ADD PERSONNEL</span><span className="btn-text-mobile">ADD</span>
-              </button>
+              {isAdmin && (
+                <button 
+                  className="btn btn-primary add-personnel-btn" 
+                  onClick={() => openForm()}
+                  style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
+                >
+                  <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">ADD PERSONNEL</span><span className="btn-text-mobile">ADD</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -280,9 +282,11 @@ export default function Personnel({ searchQuery, notify }) {
 
                     <td className="col-actions" style={{ padding: '20px 32px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="ctrl-btn" onClick={() => openForm(p)} title="Edit" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
-                          ✏️
-                        </button>
+                        {isAdmin && (
+                          <button className="ctrl-btn" onClick={() => openForm(p)} title="Edit" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
+                            ✏️
+                          </button>
+                        )}
                         {isAdmin && (
                           <button className="ctrl-btn" style={{ color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px' }} onClick={() => deletePerson(p.id)}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>

@@ -877,6 +877,7 @@ def create_app(test_config=None):
 
     @app.route('/api/personnel', methods=['POST'])
     @jwt_required()
+    @role_required('Admin')
     def create_personnel():
         """Create new personnel"""
         from models import Personnel
@@ -930,6 +931,7 @@ def create_app(test_config=None):
 
     @app.route('/api/personnel/<int:person_id>', methods=['PUT'])
     @jwt_required()
+    @role_required('Admin')
     def update_personnel(person_id):
         """Update personnel"""
         from models import Personnel
