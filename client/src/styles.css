@@ -2767,12 +2767,19 @@ label {
     top: 12px;
     right: 12px;
     gap: 6px;
+    z-index: 1000;
   }
 
   .login-lang-toggle {
-    height: 30px;
+    height: 32px;
     padding: 0 8px;
     font-size: 10px;
+  }
+
+  .login-theme-toggle {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 }
 
