@@ -979,6 +979,7 @@ def create_app(test_config=None):
 
     @app.route('/api/personnel/<int:person_id>', methods=['DELETE'])
     @jwt_required()
+    @role_required('Admin')
     def delete_personnel(person_id):
         """Delete personnel"""
         from models import Personnel, User
@@ -1996,18 +1997,13 @@ def create_app(test_config=None):
 
     @app.route('/api/documents/<int:doc_id>', methods=['DELETE'])
     @jwt_required()
+    @role_required('Admin')
     def delete_document(doc_id):
         from models import Document
-        current_user_id = int(get_jwt_identity())
-        current_user = db.session.get(User, current_user_id)
         
         doc = db.session.get(Document, doc_id)
         if not doc:
             return jsonify({"error": "Document not found"}), 404
-        
-        # Only admins or document creators can delete
-        if current_user.role != 'Admin' and doc.uploaded_by != current_user_id:
-            return jsonify({"error": "Unauthorized"}), 403
         
         try:
             # Delete uploaded file if it exists
