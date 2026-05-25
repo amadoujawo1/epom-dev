@@ -20,6 +20,7 @@ def list_personnel():
 
 @personnel_bp.route('', methods=['POST'])
 def add_person():
+    import bcrypt
     data = request.json or {}
     hire_date = None
     if data.get('hireDate'):
@@ -28,14 +29,21 @@ def add_person():
         except:
             hire_date = None
     
+    password = data.get('password')
+    password_hash = None
+    if password:
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     p = Personnel(
         name=data.get('name'),
+        username=data.get('username'),
         email=data.get('email'),
         phone=data.get('phone'),
         department=data.get('department'),
         role=data.get('role', 'User'),
         status=data.get('status', 'Active'),
-        hire_date=hire_date
+        hire_date=hire_date,
+        password_hash=password_hash
     )
     db.session.add(p)
     db.session.commit()
@@ -50,6 +58,8 @@ def update_person(person_id):
     # Update fields if provided
     if 'name' in data:
         p.name = data.get('name')
+    if 'username' in data:
+        p.username = data.get('username')
     if 'email' in data:
         p.email = data.get('email')
     if 'phone' in data:
@@ -60,6 +70,9 @@ def update_person(person_id):
         p.role = data.get('role')
     if 'status' in data:
         p.status = data.get('status')
+    if 'password' in data and data.get('password'):
+        import bcrypt
+        p.password_hash = bcrypt.hashpw(data.get('password').encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     if 'hireDate' in data:
         if data.get('hireDate'):
             try:
