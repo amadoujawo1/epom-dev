@@ -2727,7 +2727,24 @@ label {
 
 @media (max-width: 480px) {
   .top-controls .lang-toggle-btn {
-    display: none; /* Hide lang toggle on tiny screens */
+    display: flex; /* Ensure lang toggle shows on small screens */
+    padding: 0 8px;
+    height: 30px;
+    font-size: 10px;
+  }
+  
+  .top-controls {
+    gap: 4px;
+  }
+
+  .ctrl-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .ctrl-btn svg {
+    width: 14px;
+    height: 14px;
   }
   
   .page-title {
@@ -2744,6 +2761,18 @@ label {
   
   .summary-val {
     font-size: 20px;
+  }
+
+  .login-top-controls {
+    top: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+
+  .login-lang-toggle {
+    height: 30px;
+    padding: 0 8px;
+    font-size: 10px;
   }
 }
 
