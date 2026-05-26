@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import EAction from './pages/EAction'
 import EInfo from './pages/EInfo'
 import Personnel from './pages/Personnel'
@@ -24,6 +24,9 @@ function getUserInitials(user) {
   return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || '?'
 }
 
+const INACTIVITY_TIMEOUT = 2 * 60 * 1000  // 2 minutes
+const WARN_BEFORE     = 30 * 1000          // warn 30s before logout
+
 export default function App() {
   const { t, lang, setLang } = useLanguage()
   const [token, setToken] = useState(localStorage.getItem('token'))
@@ -39,6 +42,12 @@ export default function App() {
   const [userNotifications, setUserNotifications] = useState([])
   const [showNotifPanel, setShowNotifPanel] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [inactivityWarning, setInactivityWarning] = useState(false)
+  const [countdown, setCountdown] = useState(30)
+
+  const inactivityTimer  = useRef(null)
+  const warningTimer     = useRef(null)
+  const countdownTimer   = useRef(null)
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -84,13 +93,59 @@ export default function App() {
   }, [token])
 
   function logout() {
+    clearTimeout(inactivityTimer.current)
+    clearTimeout(warningTimer.current)
+    clearInterval(countdownTimer.current)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setCurrentUser(null)
     setShowProfile(false)
     setShowNotifPanel(false)
+    setInactivityWarning(false)
     setToken(null)
   }
+
+  const resetInactivityTimer = useCallback(() => {
+    if (!localStorage.getItem('token')) return
+    clearTimeout(inactivityTimer.current)
+    clearTimeout(warningTimer.current)
+    clearInterval(countdownTimer.current)
+    setInactivityWarning(false)
+    setCountdown(30)
+
+    // Show warning 30s before logout
+    warningTimer.current = setTimeout(() => {
+      setInactivityWarning(true)
+      setCountdown(30)
+      let c = 30
+      countdownTimer.current = setInterval(() => {
+        c -= 1
+        setCountdown(c)
+        if (c <= 0) {
+          clearInterval(countdownTimer.current)
+        }
+      }, 1000)
+    }, INACTIVITY_TIMEOUT - WARN_BEFORE)
+
+    // Auto logout after full timeout
+    inactivityTimer.current = setTimeout(() => {
+      logout()
+    }, INACTIVITY_TIMEOUT)
+  }, [])
+
+  // Attach activity listeners when logged in
+  useEffect(() => {
+    if (!token) return
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+    events.forEach(ev => window.addEventListener(ev, resetInactivityTimer, { passive: true }))
+    resetInactivityTimer()
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, resetInactivityTimer))
+      clearTimeout(inactivityTimer.current)
+      clearTimeout(warningTimer.current)
+      clearInterval(countdownTimer.current)
+    }
+  }, [token, resetInactivityTimer])
 
   const markRead = (id) => {
     apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' })
@@ -160,6 +215,42 @@ export default function App() {
 
   return (
     <div className={`app ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+
+      {/* ── Inactivity Warning Modal ── */}
+      {inactivityWarning && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'var(--bg-card, #fff)', borderRadius: '16px', padding: '32px',
+            maxWidth: '360px', width: '90%', textAlign: 'center',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>⏱️</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main, #0f172a)', marginBottom: '8px' }}>
+              Session Expiring
+            </div>
+            <div style={{ color: 'var(--text-muted, #64748b)', fontSize: '14px', marginBottom: '20px' }}>
+              You have been inactive. You will be logged out in
+            </div>
+            <div style={{
+              fontSize: '48px', fontWeight: 900,
+              color: countdown <= 10 ? '#ef4444' : '#f59e0b',
+              fontFamily: 'monospace', lineHeight: 1, marginBottom: '24px'
+            }}>
+              {countdown}s
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%' }}
+              onClick={resetInactivityTimer}
+            >
+              Stay Logged In
+            </button>
+          </div>
+        </div>
+      )}
       {/* ── Mobile Overlay ── */}
       {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
 
