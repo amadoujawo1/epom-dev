@@ -2,6 +2,7 @@ databases:
   - name: epom-db
     databaseName: epom_dev
     user: postgres
+    plan: free
 
 services:
   - type: web
@@ -15,7 +16,9 @@ services:
           name: epom-db
           property: connectionString
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: "3.10.0"
+      - key: NODE_VERSION
+        value: "18.17.0"
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
