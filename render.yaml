@@ -1,7 +1,6 @@
 databases:
   - name: epom-db
     databaseName: epom_dev
-    user: postgres
     plan: free
 
 services:
