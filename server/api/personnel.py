@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 # Ensure parent directory is in path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models import Personnel
-from db import db
+from ..models import Personnel
+from ..db import db
 
 personnel_bp = Blueprint('personnel', __name__)
 
