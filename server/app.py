@@ -226,9 +226,11 @@ def create_app(test_config=None):
                             except Exception as schema_err:
                                 print(f"[!] Error auto-adding column {table_name}.{col.name}: {schema_err}")
             
-            # Create default admin user if not exists
+            # Create default admin user if not exists (check by username and email)
             admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            admin_email = User.query.filter_by(email='admin@epom.local').first()
+            
+            if not admin_user and not admin_email:
                 print("Creating default admin user...")
                 admin_user = User(
                     username='admin',
@@ -251,7 +253,7 @@ def create_app(test_config=None):
                 else:
                     print("[!] ERROR: Admin user verification failed!")
             else:
-                print("[+] Admin user already exists")
+                print("[+] Admin user already exists (by username or email)")
                 
             # List all tables to confirm creation
             inspector = db.inspect(db.engine)
@@ -313,9 +315,10 @@ def create_app(test_config=None):
             db.create_all()
             print("[+] Health check: Database tables ensured")
             
-            # Check if admin user exists
+            # Check if admin user exists (by username or email)
             admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            admin_email = User.query.filter_by(email='admin@epom.local').first()
+            if not admin_user and not admin_email:
                 print("Creating admin user from health check...")
                 admin_user = User(
                     username='admin',
@@ -620,10 +623,11 @@ def create_app(test_config=None):
             except Exception as db_error:
                 print(f"[!] Database table creation error: {db_error}")
             
-            # Create admin user if not exists
+            # Create admin user if not exists (check by username and email)
             try:
                 admin_user = User.query.filter_by(username='admin').first()
-                if not admin_user:
+                admin_email = User.query.filter_by(email='admin@epom.local').first()
+                if not admin_user and not admin_email:
                     print("Creating default admin user...")
                     admin_user = User(
                         username='admin',
