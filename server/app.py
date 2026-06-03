@@ -201,12 +201,12 @@ def create_app(test_config=None):
         try:
             print("[*] Initializing database...")
             
-            # Force table creation with explicit metadata
-            db.metadata.create_all(db.engine)
+            # Force table creation with explicit metadata (checkfirst=True prevents errors)
+            db.metadata.create_all(db.engine, checkfirst=True)
             print("[+] Tables created with metadata!")
             
             # Also try create_all as backup
-            db.create_all()
+            db.create_all(checkfirst=True)
             print("[+] Tables created with create_all!")
 
             # Automatically sync any missing columns from models to the DB tables
@@ -226,9 +226,11 @@ def create_app(test_config=None):
                             except Exception as schema_err:
                                 print(f"[!] Error auto-adding column {table_name}.{col.name}: {schema_err}")
             
-            # Create default admin user if not exists
+            # Create default admin user if not exists (check by username and email)
             admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            admin_email = User.query.filter_by(email='admin@epom.local').first()
+            
+            if not admin_user and not admin_email:
                 print("Creating default admin user...")
                 admin_user = User(
                     username='admin',
@@ -251,7 +253,7 @@ def create_app(test_config=None):
                 else:
                     print("[!] ERROR: Admin user verification failed!")
             else:
-                print("[+] Admin user already exists")
+                print("[+] Admin user already exists (by username or email)")
                 
             # List all tables to confirm creation
             inspector = db.inspect(db.engine)
@@ -309,13 +311,14 @@ def create_app(test_config=None):
     @app.route('/api/health', methods=['GET'])
     def health_check():
         try:
-            # Ensure database tables exist
-            db.create_all()
+            # Ensure database tables exist (checkfirst=True prevents errors)
+            db.create_all(checkfirst=True)
             print("[+] Health check: Database tables ensured")
             
-            # Check if admin user exists
+            # Check if admin user exists (by username or email)
             admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            admin_email = User.query.filter_by(email='admin@epom.local').first()
+            if not admin_user and not admin_email:
                 print("Creating admin user from health check...")
                 admin_user = User(
                     username='admin',
@@ -457,20 +460,21 @@ def create_app(test_config=None):
             
             print("[+] Models imported successfully!")
             
-            # Force table creation with explicit metadata
+            # Force table creation with explicit metadata (checkfirst=True prevents errors)
             print("[*] Creating tables with explicit metadata...")
-            db.metadata.create_all(db.engine)
+            db.metadata.create_all(db.engine, checkfirst=True)
             print("[+] Tables created with metadata!")
             
             # Also try create_all as backup
             print("[*] Creating tables with create_all...")
-            db.create_all()
+            db.create_all(checkfirst=True)
             print("[+] Tables created with create_all!")
             
-            # Create admin user
+            # Create admin user (check both username and email)
             print("[*] Checking for admin user...")
             admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            admin_email = User.query.filter_by(email='admin@epom.local').first()
+            if not admin_user and not admin_email:
                 print("[*] Creating admin user...")
                 admin_user = User(
                     username='admin',
@@ -613,17 +617,18 @@ def create_app(test_config=None):
     @app.route('/api/auth/login', methods=['POST'])
     def login():
         try:
-            # Ensure database tables exist
+            # Ensure database tables exist (checkfirst=True prevents errors)
             try:
-                db.create_all()
+                db.create_all(checkfirst=True)
                 print("[+] Database tables ensured to exist")
             except Exception as db_error:
                 print(f"[!] Database table creation error: {db_error}")
             
-            # Create admin user if not exists
+            # Create admin user if not exists (check by username and email)
             try:
                 admin_user = User.query.filter_by(username='admin').first()
-                if not admin_user:
+                admin_email = User.query.filter_by(email='admin@epom.local').first()
+                if not admin_user and not admin_email:
                     print("Creating default admin user...")
                     admin_user = User(
                         username='admin',
