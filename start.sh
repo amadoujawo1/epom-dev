@@ -46,8 +46,9 @@ echo "[START] Attempting to start gunicorn..."
 
 if command -v gunicorn >/dev/null 2>&1; then
   echo "[START] Using gunicorn from PATH"
-  gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app
+  exec gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app
 else
-  echo "[START] Using python3 -m gunicorn"
-  python3 -m gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app || python -m gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app
+  echo "[START] Using python3 -m gunicorn (or fallback to python -m gunicorn)"
+  exec python3 -m gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app || \
+  exec python -m gunicorn --pythonpath "$SERVER_DIR" --bind 0.0.0.0:8000 --workers 4 --timeout 120 wsgi:app
 fi
