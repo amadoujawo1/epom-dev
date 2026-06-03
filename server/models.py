@@ -5,6 +5,10 @@ db = SQLAlchemy()
 
 class User(db.Model):
     __tablename__ = 'users'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
@@ -23,6 +27,10 @@ class User(db.Model):
 
 class Resource(db.Model):
     __tablename__ = 'resources'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), default='Room') # Room, Vehicle, Equipment
@@ -32,6 +40,10 @@ class Resource(db.Model):
 
 class Event(db.Model):
     __tablename__ = 'events'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -70,6 +82,10 @@ class Event(db.Model):
 
 class Document(db.Model):
     __tablename__ = 'documents'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
@@ -84,6 +100,10 @@ class Document(db.Model):
 
 class Project(db.Model):
     __tablename__ = 'projects'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -93,6 +113,10 @@ class Project(db.Model):
 
 class Action(db.Model):
     __tablename__ = 'actions'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -107,6 +131,10 @@ class Action(db.Model):
 
 class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_records'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     clock_in_time = db.Column(db.DateTime(timezone=True), nullable=False)
@@ -117,6 +145,10 @@ class AttendanceRecord(db.Model):
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     message = db.Column(db.String(255), nullable=False)
@@ -126,6 +158,10 @@ class Notification(db.Model):
 
 class DocumentAudit(db.Model):
     __tablename__ = 'document_audits'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -134,6 +170,10 @@ class DocumentAudit(db.Model):
 
 class Personnel(db.Model):
     __tablename__ = 'personnel'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=True)

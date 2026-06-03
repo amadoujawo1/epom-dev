@@ -140,7 +140,7 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     
     # Configure CORS
-    CORS(app, resources={r"/api/*": {"origins": os.environ.get('CORS_ORIGINS', '*')}})
+    CORS(app, resources={r"/api/*": {"origins": os.environ.get('CORS_ORIGINS', '*')}})  # type: ignore
     
     import sys
     sys.path.append(os.path.dirname(__file__))
@@ -265,8 +265,9 @@ def create_app(test_config=None):
 
     # Debugging: Log the database URL and static folder
     print(f"Using database: {app.config['SQLALCHEMY_DATABASE_URI']}")
-    print(f"Static folder: {os.path.abspath(app.static_folder)}")
-    print(f"Static folder exists: {os.path.exists(app.static_folder)}")
+    if app.static_folder:
+        print(f"Static folder: {os.path.abspath(app.static_folder)}")
+        print(f"Static folder exists: {os.path.exists(app.static_folder)}")
 
     @app.route('/api/stats', methods=['GET'])
     def overall_stats():
@@ -352,7 +353,9 @@ def create_app(test_config=None):
             print("Testing database connection...")
             
             # Test basic database connection
-            result = db.engine.execute("SELECT 1")
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                result = conn.execute(text("SELECT 1"))
             print("Database connection successful!")
             
             # Check if tables exist
@@ -497,7 +500,7 @@ def create_app(test_config=None):
                         "username": "admin",
                         "password": "admin123"
                     },
-                    "tables_created": [table.name for table in db.metadata.tables.keys()],
+                    "tables_created": list(db.metadata.tables.keys()),
                     "database_url": app.config['SQLALCHEMY_DATABASE_URI']
                 })
             else:
@@ -505,7 +508,7 @@ def create_app(test_config=None):
                 return jsonify({
                     "status": "success",
                     "message": "Database already initialized",
-                    "tables": [table.name for table in db.metadata.tables.keys()],
+                    "tables": list(db.metadata.tables.keys()),
                     "database_url": app.config['SQLALCHEMY_DATABASE_URI']
                 })
         except Exception as e:
@@ -715,9 +718,12 @@ def create_app(test_config=None):
     @app.route('/api/auth/mfa/verify', methods=['POST'])
     def mfa_verify():
         from models import User, db
-        data = request.json
+        data = request.json or {}
         user_id = data.get('user_id')
         code = data.get('code')
+        
+        if not user_id or not code:
+            return jsonify({"error": "Missing user_id or code"}), 400
         
         user = db.session.get(User, int(user_id))
         if not user or user.mfa_code != code:
@@ -807,7 +813,7 @@ def create_app(test_config=None):
         user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
-        data = request.json
+        data = request.json or {}
         if 'is_active' in data:
             user.is_active = data['is_active']
         db.session.commit()
@@ -819,6 +825,8 @@ def create_app(test_config=None):
         # Admin can update user details, or user can update their own details
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({"error": "Current user not found"}), 404
         
         if current_user.role != 'Admin' and current_user_id != user_id:
             return jsonify({"error": "Unauthorized"}), 403
@@ -826,8 +834,9 @@ def create_app(test_config=None):
         user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
-        data = request.json
-        
+            
+        data = request.json or {}
+
         if 'username' in data:
             # Check if username is already taken by another user
             existing = User.query.filter_by(username=data['username']).first()
@@ -1040,7 +1049,7 @@ def create_app(test_config=None):
     def clock_attendance():
         from models import AttendanceRecord, db
         current_user_id = int(get_jwt_identity())
-        data = request.json
+        data = request.json or {}
         action = data.get('action') # 'in' or 'out'
         
         now = datetime.now(timezone.utc)
@@ -1124,7 +1133,7 @@ def create_app(test_config=None):
         if not project:
             return jsonify({"error": "Project not found"}), 404
         
-        data = request.json
+        data = request.json or {}
         if 'name' in data:
             project.name = data['name']
         if 'description' in data:
@@ -1345,11 +1354,11 @@ def create_app(test_config=None):
                 "generated_at": now.isoformat(),
                 "overdue": [{
                     "id": a.id, "title": a.title, "due": a.due_date.isoformat(),
-                    "owner": db.session.get(User, a.assigned_to).username if a.assigned_to else "Unassigned"
+                    "owner": getattr(db.session.get(User, a.assigned_to), 'username', 'Unknown') if a.assigned_to else "Unassigned"
                 } for a in overdue_actions],
                 "critical_pending": [{
                     "id": a.id, "title": a.title, "priority": a.priority,
-                    "owner": db.session.get(User, a.assigned_to).username if a.assigned_to else "Unassigned"
+                    "owner": getattr(db.session.get(User, a.assigned_to), 'username', 'Unknown') if a.assigned_to else "Unassigned"
                 } for a in critical_pending]
             }
             return jsonify(report), 200
@@ -1420,6 +1429,7 @@ def create_app(test_config=None):
     @jwt_required()
     def create_action():
         from datetime import datetime, timezone
+        from models import User, Notification
         try:
             data = request.json
             if not data or 'title' not in data:
@@ -1438,7 +1448,6 @@ def create_app(test_config=None):
             # Fallback to looking up 'owner' (e.g. from the raw Owner input)
             if not assigned_to_id and 'owner' in data and data['owner']:
                 owner_str = str(data['owner']).strip()
-                from models import User
                 user = User.query.filter_by(username=owner_str).first()
                 if not user:
                     user = User.query.filter((User.first_name == owner_str) | (User.last_name == owner_str)).first()
@@ -1491,7 +1500,6 @@ def create_app(test_config=None):
             db.session.commit()
             
             try:
-                from models import Notification
                 notif = Notification(
                     user_id=new_action.assigned_to,
                     message=f"New task assigned: {new_action.title}",
@@ -1540,6 +1548,9 @@ def create_app(test_config=None):
     def update_action(action_id):
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({"error": "Current user not found"}), 404
+            
         action = db.session.get(Action, action_id)
         if not action:
             return jsonify({"error": "Action not found"}), 404
@@ -1548,7 +1559,7 @@ def create_app(test_config=None):
         if action.assigned_to != current_user_id and current_user.role != 'Admin':
             return jsonify({"error": "Unauthorized: Only the assigned user or an Admin can modify this directive."}), 403
 
-        data = request.json
+        data = request.json or {}
         if 'status' in data:
             action.status = data['status']
         if 'project_id' in data:
@@ -1638,6 +1649,8 @@ def create_app(test_config=None):
     def get_documents():
         current_user_id = int(get_jwt_identity())
         user = db.session.get(User, current_user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
         
         # Use outerjoin to include documents even if uploader user is missing
         query = db.session.query(Document, User.username).outerjoin(User, Document.uploaded_by == User.id)
@@ -1686,12 +1699,12 @@ def create_app(test_config=None):
                 doc_type = request.form.get('doc_type', 'Briefing Note')
                 
                 # Check for file upload
-                if 'file' in request.files and request.files['file'].filename != '':
+                if 'file' in request.files and request.files['file'].filename:
                     file = request.files['file']
                     upload_dir = 'uploads'
                     if not os.path.exists(upload_dir):
                         os.makedirs(upload_dir)
-                    filename = secure_filename(file.filename)
+                    filename = secure_filename(file.filename or 'unknown_file')
                     file_path = os.path.join(upload_dir, filename)
                     file.save(file_path)
                     doc_type = 'Uploaded File'
@@ -1744,19 +1757,21 @@ def create_app(test_config=None):
         from models import DocumentAudit, User
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({"error": "Current user not found"}), 404
         
         # Only admins or document creators can view audit logs
         doc = db.session.get(Document, doc_id)
         if not doc or (current_user.role != 'Admin' and doc.uploaded_by != current_user_id):
             return jsonify({"error": "Unauthorized"}), 403
             
-        audits = DocumentAudit.query.filter_by(document_id=doc_id).order_by(DocumentAudit.created_at.desc()).all()
+        audits = DocumentAudit.query.filter_by(document_id=doc_id).order_by(DocumentAudit.timestamp.desc()).all()
         return jsonify([{
             "id": a.id,
             "action": a.action,
             "user_id": a.user_id,
-            "username": User.query.get(a.user_id).username if User.query.get(a.user_id) else "Unknown",
-            "created_at": a.created_at.isoformat()
+            "username": getattr(db.session.get(User, a.user_id), 'username', 'Unknown'),
+            "created_at": a.timestamp.isoformat()
         } for a in audits]), 200
 
     @app.route('/api/documents/template', methods=['POST'])
@@ -1817,7 +1832,7 @@ def create_app(test_config=None):
                 os.makedirs(upload_dir)
             
             # Secure filename and save
-            filename = secure_filename(file.filename)
+            filename = secure_filename(file.filename or 'unknown_file')
             file_path = os.path.join(upload_dir, filename)
             file.save(file_path)
             
@@ -1869,6 +1884,8 @@ def create_app(test_config=None):
         from models import Document
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({"error": "Current user not found"}), 401
         
         doc = db.session.get(Document, doc_id)
         if not doc:
@@ -1879,7 +1896,7 @@ def create_app(test_config=None):
             return jsonify({"error": "Unauthorized"}), 403
         
         try:
-            data = request.json
+            data = request.json or {}
             if 'status' in data:
                 doc.status = data['status']
             if 'title' in data:
@@ -1906,6 +1923,8 @@ def create_app(test_config=None):
         from models import Document, DocumentAudit
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({'error': 'Current user not found'}), 401
         doc = db.session.get(Document, doc_id)
         if not doc:
             return jsonify({'error': 'Document not found'}), 404
@@ -1930,6 +1949,8 @@ def create_app(test_config=None):
         from models import Document, DocumentAudit
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({'error': 'Current user not found'}), 401
         if current_user.role != 'Admin':
             return jsonify({'error': 'Admin access required'}), 403
         doc = db.session.get(Document, doc_id)
@@ -1953,6 +1974,8 @@ def create_app(test_config=None):
         from models import Document, DocumentAudit
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({'error': 'Current user not found'}), 401
         if current_user.role != 'Admin':
             return jsonify({'error': 'Admin access required'}), 403
         doc = db.session.get(Document, doc_id)
@@ -1977,6 +2000,8 @@ def create_app(test_config=None):
         from models import Document, DocumentAudit
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
+        if not current_user:
+            return jsonify({'error': 'Current user not found'}), 401
         if current_user.role != 'Admin':
             return jsonify({'error': 'Admin access required'}), 403
         doc = db.session.get(Document, doc_id)
@@ -2042,10 +2067,13 @@ def create_app(test_config=None):
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_frontend(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
+        static_folder = app.static_folder
+        if not static_folder:
+            return jsonify({"error": "Static folder not configured"}), 500
+        if path != "" and os.path.exists(static_folder + '/' + path):
+            return send_from_directory(static_folder, path)
         else:
-            return send_from_directory(app.static_folder, 'index.html')
+            return send_from_directory(static_folder, 'index.html')
 
     return app
 
