@@ -3,9 +3,9 @@ const translations = {
     // ── Navigation ──
     nav_dashboard: 'Dashboard',
     nav_personnel: 'Personnel',
-    nav_etime: 'e-Time',
-    nav_einfo: 'e-Info',
-    nav_eaction: 'e-Action',
+    nav_etime: 'Calendar',
+    nav_einfo: 'Library',
+    nav_eaction: 'Directives/Actions',
     nav_reports: 'Reports',
     nav_section: 'Navigation',
     digi_delivery: 'DIGI DELIVERY',
@@ -18,9 +18,9 @@ const translations = {
     // ── Page titles ──
     page_dashboard: 'Dashboard',
     page_personnel: 'Personnel',
-    page_etime: 'e-Time Calendar',
-    page_einfo: 'e-Info Documents',
-    page_eaction: 'e-Action Board',
+    page_etime: 'Calendar',
+    page_einfo: 'Library',
+    page_eaction: 'Directives / Actions',
     page_reports: 'Reports & Analytics',
 
     // ── Topbar ──
@@ -388,9 +388,9 @@ const translations = {
     // ── Navigation ──
     nav_dashboard: 'Tableau de bord',
     nav_personnel: 'Personnel',
-    nav_etime: 'e-Temps',
-    nav_einfo: 'e-Info',
-    nav_eaction: 'e-Action',
+    nav_etime: 'Calendrier',
+    nav_einfo: 'Bibliothèque',
+    nav_eaction: 'Directives/Actions',
     nav_reports: 'Rapports',
     nav_section: 'Navigation',
     digi_delivery: 'DIGI LIVRAISON',
@@ -403,9 +403,9 @@ const translations = {
     // ── Page titles ──
     page_dashboard: 'Tableau de bord',
     page_personnel: 'Personnel',
-    page_etime: 'Calendrier e-Temps',
-    page_einfo: 'Documents e-Info',
-    page_eaction: 'Tableau e-Action',
+    page_etime: 'Calendrier',
+    page_einfo: 'Bibliothèque',
+    page_eaction: 'Directives / Actions',
     page_reports: 'Rapports & Analyses',
 
     // ── Topbar ──
