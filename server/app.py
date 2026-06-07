@@ -206,7 +206,7 @@ def create_app(test_config=None):
             print("[+] Tables created with metadata!")
             
             # Also try create_all as backup
-            db.create_all(checkfirst=True)
+            db.create_all()
             print("[+] Tables created with create_all!")
 
             # Automatically sync any missing columns from models to the DB tables
