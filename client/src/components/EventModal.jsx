@@ -23,7 +23,6 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
     { value: 'travel',   label: t('type_travel'),   icon: '✈️' },
     { value: 'training', label: t('type_training'), icon: '🎓' },
     { value: 'workshop', label: t('type_workshop'), icon: '🛠️' },
-    { value: 'workship', label: t('type_workship'), icon: '⛪' },
     { value: 'other',    label: t('type_other'),    icon: '📅' },
   ];
 
@@ -150,7 +149,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                 </div>
               </div>
 
-              {['travel', 'training', 'other', 'workshop', 'workship'].includes(form.type) ? (
+              {['travel', 'training', 'other', 'workshop'].includes(form.type) ? (
                 <>
                   <div className="form-row">
                     <div className="form-group">

@@ -64,7 +64,6 @@ export default function ETime({ searchQuery, notify }) {
   const briefingsCount = events.filter(e => e.type === 'briefing').length
   const travelCount = events.filter(e => e.type === 'travel').length
   const workshopsCount = events.filter(e => e.type === 'workshop').length
-  const workshipsCount = events.filter(e => e.type === 'workship').length
 
   const upcomingEvent = events
     .filter(e => new Date(e.start_time) >= new Date())
@@ -172,9 +171,6 @@ export default function ETime({ searchQuery, notify }) {
               </button>
               <button className={`filter-btn ${typeFilter === 'workshop' ? 'active' : ''}`} onClick={() => setTypeFilter('workshop')}>
                 <span>🛠️</span> {t('type_workshop')} ({workshopsCount})
-              </button>
-              <button className={`filter-btn ${typeFilter === 'workship' ? 'active' : ''}`} onClick={() => setTypeFilter('workship')}>
-                <span>⛪</span> {t('type_workship')} ({workshipsCount})
               </button>
             </div>
 
