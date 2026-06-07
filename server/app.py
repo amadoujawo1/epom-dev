@@ -2076,9 +2076,18 @@ def create_app(test_config=None):
         if not static_folder:
             return jsonify({"error": "Static folder not configured"}), 500
         if path != "" and os.path.exists(static_folder + '/' + path):
-            return send_from_directory(static_folder, path)
+            response = send_from_directory(static_folder, path)
+            # Hashed assets (e.g. index-abc123.js) can be cached long-term
+            if '/assets/' in path:
+                response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            return response
         else:
-            return send_from_directory(static_folder, 'index.html')
+            response = send_from_directory(static_folder, 'index.html')
+            # index.html must never be cached so the browser always gets the latest bundle
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
 
     return app
 
