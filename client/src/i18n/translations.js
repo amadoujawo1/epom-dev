@@ -316,6 +316,7 @@ const translations = {
     type_briefing: 'Briefing',
     type_travel: 'Travel',
     type_training: 'Training',
+    type_workshop: 'Workshop',
     type_other: 'Other',
 
     // ── Personnel ──
@@ -701,6 +702,7 @@ const translations = {
     type_briefing: 'Briefing',
     type_travel: 'Déplacement',
     type_training: 'Formation',
+    type_workshop: 'Atelier',
     type_other: 'Autre',
 
     // ── Personnel ──

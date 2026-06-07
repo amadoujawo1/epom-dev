@@ -5,6 +5,7 @@ const EVENT_COLORS = {
   meeting: 'hsl(210, 70%, 70%)',   // soft blue
   briefing: 'hsl(45, 80%, 70%)',   // warm amber
   travel: 'hsl(340, 70%, 80%)',    // gentle pink
+  workshop: 'hsl(280, 60%, 75%)',  // soft violet
   default: 'hsl(200, 10%, 80%)'   // neutral gray
 };
 

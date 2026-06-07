@@ -22,6 +22,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
     { value: 'briefing', label: t('type_briefing'), icon: '📢' },
     { value: 'travel',   label: t('type_travel'),   icon: '✈️' },
     { value: 'training', label: t('type_training'), icon: '🎓' },
+    { value: 'workshop', label: t('type_workshop'), icon: '🛠️' },
     { value: 'other',    label: t('type_other'),    icon: '📅' },
   ];
 

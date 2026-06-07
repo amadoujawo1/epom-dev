@@ -63,6 +63,7 @@ export default function ETime({ searchQuery, notify }) {
   const meetingsCount = events.filter(e => e.type === 'meeting').length
   const briefingsCount = events.filter(e => e.type === 'briefing').length
   const travelCount = events.filter(e => e.type === 'travel').length
+  const workshopsCount = events.filter(e => e.type === 'workshop').length
 
   const upcomingEvent = events
     .filter(e => new Date(e.start_time) >= new Date())
@@ -110,6 +111,7 @@ export default function ETime({ searchQuery, notify }) {
       case 'meeting': return '👥'
       case 'briefing': return '📢'
       case 'travel': return '✈️'
+      case 'workshop': return '🛠️'
       default: return '📅'
     }
   }
@@ -165,6 +167,9 @@ export default function ETime({ searchQuery, notify }) {
               </button>
               <button className={`filter-btn ${typeFilter === 'travel' ? 'active' : ''}`} onClick={() => setTypeFilter('travel')}>
                 <span>✈️</span> {t('travel')} ({travelCount})
+              </button>
+              <button className={`filter-btn ${typeFilter === 'workshop' ? 'active' : ''}`} onClick={() => setTypeFilter('workshop')}>
+                <span>🛠️</span> {t('type_workshop')} ({workshopsCount})
               </button>
             </div>
 
@@ -225,6 +230,13 @@ export default function ETime({ searchQuery, notify }) {
                   {t('travel')}
                 </span>
                 <span className="stat-count">{travelCount}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label-wrap">
+                  <span className="stat-dot" style={{ background: 'hsl(280, 60%, 75%)' }}></span>
+                  {t('type_workshop')}
+                </span>
+                <span className="stat-count">{workshopsCount}</span>
               </div>
             </div>
           </div>

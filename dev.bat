@@ -5,8 +5,7 @@ echo ============================================
 echo.
 
 echo [1/3] Syncing source files to inner project copy...
-xcopy /Y /Q "%~dp0client\src\i18n\translations.js" "%~dp0epom-dev\client\src\i18n\"
-xcopy /Y /Q "%~dp0client\src\pages\Personnel.jsx"  "%~dp0epom-dev\client\src\pages\"
+xcopy /E /Y /I /Q "%~dp0client\src" "%~dp0epom-dev\client\src"
 xcopy /Y /Q "%~dp0client\package.json"             "%~dp0epom-dev\client\"
 xcopy /Y /Q "%~dp0server\app.py"                   "%~dp0epom-dev\server\"
 echo Sync done.
