@@ -47,7 +47,7 @@ export default function Personnel({ searchQuery, notify }) {
       .then(setPeople)
       .catch(err => { 
         setPeople([]); 
-        notify(err.message || 'Failed to load personnel', 'error') 
+        notify(err.message || t('personnel_failed_load'), 'error') 
       })
       .finally(() => setLoading(false))
   }
@@ -95,32 +95,32 @@ export default function Personnel({ searchQuery, notify }) {
 
     const username = (fields.username || '').trim().toLowerCase()
     if (!username) {
-      notify('Username is required', 'error')
+      notify(t('personnel_err_username_required'), 'error')
       return
     }
     if (username.length < 3) {
-      notify('Username must be at least 3 characters', 'error')
+      notify(t('personnel_err_username_short'), 'error')
       return
     }
 
     if (!editingId) {
       if (!password) {
-        notify('Password is required', 'error')
+        notify(t('personnel_err_password_required'), 'error')
         return
       }
       if (password.length < 6) {
-        notify('Password must be at least 6 characters', 'error')
+        notify(t('personnel_err_password_short'), 'error')
         return
       }
     }
 
     if (password || confirmPassword) {
       if (password !== confirmPassword) {
-        notify('Passwords do not match', 'error')
+        notify(t('personnel_err_passwords_mismatch'), 'error')
         return
       }
       if (password.length < 6) {
-        notify('Password must be at least 6 characters', 'error')
+        notify(t('personnel_err_password_short'), 'error')
         return
       }
     }
@@ -134,26 +134,43 @@ export default function Personnel({ searchQuery, notify }) {
     apiFetch(url, { method, body: JSON.stringify(payload) })
       .then(p => {
         setPeople(prev => editingId ? prev.map(x => x.id === p.id ? p : x) : [p, ...prev])
-        notify(editingId ? 'Personnel updated' : 'Personnel added', 'success')
+        notify(editingId ? t('personnel_updated') : t('personnel_added'), 'success')
         closeForm()
       })
-      .catch(err => notify(err.message || (editingId ? 'Failed to update' : 'Failed to add'), 'error'))
+      .catch(err => notify(err.message || (editingId ? t('personnel_failed_update') : t('personnel_failed_add')), 'error'))
       .finally(() => setSubmitting(false))
   }
 
   function toggleStatus(person) {
     const newStatus = person.status === 'Active' ? 'Inactive' : 'Active'
     apiFetch(`/api/personnel/${person.id}`, { method: 'PUT', body: JSON.stringify({ ...person, status: newStatus }) })
-      .then(p => { setPeople(prev => prev.map(x => x.id === p.id ? p : x)); notify(`Marked ${newStatus}`, 'success') })
-      .catch(() => notify('Failed to update status', 'error'))
+      .then(p => {
+        setPeople(prev => prev.map(x => x.id === p.id ? p : x))
+        notify(t('personnel_marked_status').replace('{status}', newStatus), 'success')
+      })
+      .catch(() => notify(t('personnel_failed_status'), 'error'))
   }
 
   function deletePerson(id) {
-    if (!confirm('Delete this personnel record?')) return
+    if (!confirm(t('personnel_delete_confirm'))) return
     apiFetch(`/api/personnel/${id}`, { method: 'DELETE' })
-      .then(() => { setPeople(prev => prev.filter(p => p.id !== id)); notify('Personnel deleted', 'success') })
-      .catch(() => notify('Failed to delete', 'error'))
+      .then(() => { setPeople(prev => prev.filter(p => p.id !== id)); notify(t('personnel_deleted'), 'success') })
+      .catch(() => notify(t('personnel_failed_delete'), 'error'))
   }
+
+  const TABLE_COLS = [
+    { key: 'employee',    label: t('personnel_col_employee') },
+    { key: 'username',    label: t('personnel_col_username') },
+    { key: 'department',  label: t('personnel_col_department') },
+    { key: 'role',        label: t('personnel_col_role') },
+    { key: 'status',      label: t('personnel_col_status') },
+    { key: 'actions',     label: t('personnel_col_actions') },
+  ]
+
+  const STATUS_OPTIONS = [
+    { value: 'Active',   label: t('personnel_status_active') },
+    { value: 'Inactive', label: t('personnel_status_inactive') },
+  ]
 
   return (
     <div className="personnel-page">
@@ -188,7 +205,9 @@ export default function Personnel({ searchQuery, notify }) {
                   onClick={() => openForm()}
                   style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
                 >
-                  <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">ADD PERSONNEL</span><span className="btn-text-mobile">ADD</span>
+                  <span style={{ fontSize: 'var(--fs-xl)' }}>+</span>
+                  <span className="btn-text-desktop">{t('personnel_add_btn_desktop')}</span>
+                  <span className="btn-text-mobile">{t('personnel_add_btn_mobile')}</span>
                 </button>
               )}
             </div>
@@ -199,20 +218,20 @@ export default function Personnel({ searchQuery, notify }) {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div className="loading-spinner-lg" style={{ margin: '0 auto 16px' }} />
-            <span style={{ color: '#94a3b8', fontWeight: 600 }}>Loading personnel…</span>
+            <span style={{ color: '#94a3b8', fontWeight: 600 }}>{t('personnel_loading')}</span>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8', fontSize: 'var(--fs-md)', fontWeight: 600, letterSpacing: '0.5px' }}>
-            {people.length === 0 ? 'NO PERSONNEL RECORDS FOUND.' : 'NO RESULTS MATCH YOUR SEARCH.'}
+            {people.length === 0 ? t('personnel_no_records') : t('personnel_no_results')}
           </div>
         ) : (
           <div className="personnel-table-wrapper" style={{ padding: '0 0 32px' }}>
             <table className="personnel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead className="personnel-table-head">
                 <tr style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
-                  {['Employee', 'Username', 'Department', 'Role', 'Status', 'Actions'].map(col => (
-                    <th key={col} className={`col-${col.toLowerCase()}`} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                      {col}
+                  {TABLE_COLS.map(col => (
+                    <th key={col.key} className={`col-${col.key}`} style={{ padding: '16px 32px', fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      {col.label}
                     </th>
                   ))}
                 </tr>
@@ -227,7 +246,7 @@ export default function Personnel({ searchQuery, notify }) {
                         </div>
                         <div>
                           <div className="personnel-name" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)' }}>{p.name}</div>
-                          <div className="personnel-email" style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>{p.email || 'No email'}</div>
+                          <div className="personnel-email" style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>{p.email || t('personnel_no_email')}</div>
                         </div>
                       </div>
                     </td>
@@ -237,11 +256,11 @@ export default function Personnel({ searchQuery, notify }) {
                     </td>
 
                     <td className="col-department" style={{ padding: '20px 32px', color: '#334155', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
-                      <span className="mobile-label">DEPT: </span>{p.department || '—'}
+                      <span className="mobile-label">{t('personnel_dept_label')}: </span>{p.department || '—'}
                     </td>
 
                     <td className="col-role" style={{ padding: '20px 32px' }}>
-                      <span className="mobile-label">ROLE: </span>
+                      <span className="mobile-label">{t('personnel_role_label')}: </span>
                       <span className="personnel-role-badge" style={{ 
                         padding: '4px 10px', 
                         borderRadius: '6px', 
@@ -256,7 +275,7 @@ export default function Personnel({ searchQuery, notify }) {
                     </td>
 
                     <td className="col-status" style={{ padding: '20px 32px' }}>
-                      <span className="mobile-label">STATUS: </span>
+                      <span className="mobile-label">{t('personnel_status_label')}: </span>
                       <span 
                         onClick={() => toggleStatus(p)}
                         className={`personnel-status-pill status-${(p.status || 'Active').toLowerCase()}`}
@@ -276,14 +295,14 @@ export default function Personnel({ searchQuery, notify }) {
                         }}
                       >
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
-                        {p.status || 'Active'}
+                        {p.status === 'Inactive' ? t('personnel_status_inactive') : t('personnel_status_active')}
                       </span>
                     </td>
 
                     <td className="col-actions" style={{ padding: '20px 32px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         {isAdmin && (
-                          <button className="ctrl-btn" onClick={() => openForm(p)} title="Edit" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
+                          <button className="ctrl-btn" onClick={() => openForm(p)} title={t('edit')} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px' }}>
                             ✏️
                           </button>
                         )}
@@ -314,8 +333,8 @@ export default function Personnel({ searchQuery, notify }) {
                   {editingId ? '✏️' : '➕'}
                 </div>
                 <div>
-                  <div className="modal-title">{editingId ? 'Edit Personnel' : 'Add New Personnel'}</div>
-                  <div className="modal-subtitle">{editingId ? 'Update personnel record details' : 'Register a new team member'}</div>
+                  <div className="modal-title">{editingId ? t('personnel_modal_edit_title') : t('personnel_modal_add_title')}</div>
+                  <div className="modal-subtitle">{editingId ? t('personnel_modal_edit_sub') : t('personnel_modal_add_sub')}</div>
                 </div>
               </div>
               <button className="modal-close-btn" onClick={closeForm} type="button">✕</button>
@@ -332,24 +351,24 @@ export default function Personnel({ searchQuery, notify }) {
                     {form.name ? getInitials(form.name) : '?'}
                   </div>
                   <div className="avatar-preview-info">
-                    <div className="avatar-preview-name">{form.name || 'Full name here'}</div>
+                    <div className="avatar-preview-name">{form.name || t('personnel_avatar_name_placeholder')}</div>
                     <div className="avatar-preview-role">
-                      @{form.username || 'username'} · {form.role || 'Role'} · {form.department || 'Department'}
+                      @{form.username || t('personnel_avatar_username_placeholder')} · {form.role || t('personnel_avatar_role_placeholder')} · {form.department || t('personnel_avatar_dept_placeholder')}
                     </div>
                   </div>
                 </div>
 
                 <div className="modal-form-grid">
 
-                  <div className="modal-section-label">Profile</div>
+                  <div className="modal-section-label">{t('personnel_section_profile')}</div>
 
                   <div className="field-group">
                     <div className="field-icon">👤</div>
                     <div className="field-inner">
-                      <label className="field-label">Full Name <span className="req">*</span></label>
+                      <label className="field-label">{t('personnel_full_name_label')} <span className="req">*</span></label>
                       <input
                         className="field-input"
-                        placeholder="e.g. Jane Doe"
+                        placeholder={t('personnel_full_name_placeholder')}
                         value={form.name}
                         onChange={e => setForm({ ...form, name: e.target.value })}
                         required
@@ -360,10 +379,10 @@ export default function Personnel({ searchQuery, notify }) {
                   <div className="field-group">
                     <div className="field-icon">@</div>
                     <div className="field-inner">
-                      <label className="field-label">Username <span className="req">*</span></label>
+                      <label className="field-label">{t('personnel_username_label')} <span className="req">*</span></label>
                       <input
                         className="field-input"
-                        placeholder="e.g. jane.doe"
+                        placeholder={t('personnel_username_placeholder')}
                         value={form.username}
                         onChange={e => setForm({ ...form, username: e.target.value.replace(/\s/g, '') })}
                         required
@@ -375,26 +394,26 @@ export default function Personnel({ searchQuery, notify }) {
                   <div className="field-group field-group--full">
                     <div className="field-icon">✉️</div>
                     <div className="field-inner">
-                      <label className="field-label">Email Address</label>
+                      <label className="field-label">{t('personnel_email_label')}</label>
                       <input
                         className="field-input"
                         type="email"
-                        placeholder="name@organization.gov"
+                        placeholder={t('personnel_email_placeholder')}
                         value={form.email}
                         onChange={e => setForm({ ...form, email: e.target.value })}
                       />
                     </div>
                   </div>
 
-                  <div className="modal-section-label">Role &amp; Access</div>
+                  <div className="modal-section-label">{t('personnel_section_access')}</div>
 
                   <div className="field-group">
                     <div className="field-icon">🏢</div>
                     <div className="field-inner">
-                      <label className="field-label">Department</label>
+                      <label className="field-label">{t('personnel_department_label')}</label>
                       <input
                         className="field-input"
-                        placeholder="e.g. Operations"
+                        placeholder={t('personnel_department_placeholder')}
                         value={form.department}
                         onChange={e => setForm({ ...form, department: e.target.value })}
                       />
@@ -404,10 +423,10 @@ export default function Personnel({ searchQuery, notify }) {
                   <div className="field-group">
                     <div className="field-icon">🎖️</div>
                     <div className="field-inner">
-                      <label className="field-label">Role / Title</label>
+                      <label className="field-label">{t('personnel_role_field_label')}</label>
                       <input
                         className="field-input"
-                        placeholder="e.g. Analyst"
+                        placeholder={t('personnel_role_field_placeholder')}
                         value={form.role}
                         onChange={e => setForm({ ...form, role: e.target.value })}
                       />
@@ -418,12 +437,12 @@ export default function Personnel({ searchQuery, notify }) {
                     <div className="field-icon">🔒</div>
                     <div className="field-inner">
                       <label className="field-label">
-                        Password {!editingId && <span className="req">*</span>}
+                        {t('personnel_password_label')} {!editingId && <span className="req">*</span>}
                       </label>
                       <input
                         className="field-input"
                         type="password"
-                        placeholder={editingId ? 'Unchanged if blank' : 'Min. 6 characters'}
+                        placeholder={editingId ? t('personnel_password_placeholder_edit') : t('personnel_password_placeholder_new')}
                         value={form.password}
                         onChange={e => setForm({ ...form, password: e.target.value })}
                         required={!editingId}
@@ -436,12 +455,12 @@ export default function Personnel({ searchQuery, notify }) {
                     <div className="field-icon">🔒</div>
                     <div className="field-inner">
                       <label className="field-label">
-                        Confirm Password {!editingId && <span className="req">*</span>}
+                        {t('personnel_confirm_password_label')} {!editingId && <span className="req">*</span>}
                       </label>
                       <input
                         className="field-input"
                         type="password"
-                        placeholder={editingId ? 'Unchanged if blank' : 'Re-enter password'}
+                        placeholder={editingId ? t('personnel_confirm_password_placeholder_edit') : t('personnel_confirm_password_placeholder_new')}
                         value={form.confirmPassword}
                         onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
                         required={!editingId}
@@ -453,16 +472,16 @@ export default function Personnel({ searchQuery, notify }) {
                   <div className="field-group field-group--full">
                     <div className="field-icon">🔆</div>
                     <div className="field-inner">
-                      <label className="field-label">Status</label>
+                      <label className="field-label">{t('personnel_status_label_field')}</label>
                       <div className="status-toggle-group">
-                        {['Active', 'Inactive'].map(s => (
+                        {STATUS_OPTIONS.map(opt => (
                           <button
-                            key={s}
+                            key={opt.value}
                             type="button"
-                            className={`status-pill ${form.status === s ? (s === 'Active' ? 'pill-active' : 'pill-inactive') : 'pill-off'}`}
-                            onClick={() => setForm({ ...form, status: s })}
+                            className={`status-pill ${form.status === opt.value ? (opt.value === 'Active' ? 'pill-active' : 'pill-inactive') : 'pill-off'}`}
+                            onClick={() => setForm({ ...form, status: opt.value })}
                           >
-                            {s}
+                            {opt.label}
                           </button>
                         ))}
                       </div>
@@ -479,7 +498,7 @@ export default function Personnel({ searchQuery, notify }) {
                   onClick={closeForm}
                   disabled={submitting}
                 >
-                  Cancel
+                  {t('personnel_cancel')}
                 </button>
                 <button
                   type="submit"
@@ -487,8 +506,8 @@ export default function Personnel({ searchQuery, notify }) {
                   disabled={submitting}
                 >
                   {submitting
-                    ? <><span className="btn-spinner" /> Saving…</>
-                    : editingId ? '💾 Update Record' : '✚ Create Record'}
+                    ? <><span className="btn-spinner" /> {t('personnel_saving')}</>
+                    : editingId ? t('personnel_update_record') : t('personnel_create_record')}
                 </button>
               </div>
 
