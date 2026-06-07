@@ -64,6 +64,7 @@ export default function ETime({ searchQuery, notify }) {
   const briefingsCount = events.filter(e => e.type === 'briefing').length
   const travelCount = events.filter(e => e.type === 'travel').length
   const workshopsCount = events.filter(e => e.type === 'workshop').length
+  const workshipsCount = events.filter(e => e.type === 'workship').length
 
   const upcomingEvent = events
     .filter(e => new Date(e.start_time) >= new Date())
@@ -112,6 +113,7 @@ export default function ETime({ searchQuery, notify }) {
       case 'briefing': return '📢'
       case 'travel': return '✈️'
       case 'workshop': return '🛠️'
+      case 'workship': return '⛪'
       default: return '📅'
     }
   }
@@ -170,6 +172,9 @@ export default function ETime({ searchQuery, notify }) {
               </button>
               <button className={`filter-btn ${typeFilter === 'workshop' ? 'active' : ''}`} onClick={() => setTypeFilter('workshop')}>
                 <span>🛠️</span> {t('type_workshop')} ({workshopsCount})
+              </button>
+              <button className={`filter-btn ${typeFilter === 'workship' ? 'active' : ''}`} onClick={() => setTypeFilter('workship')}>
+                <span>⛪</span> {t('type_workship')} ({workshipsCount})
               </button>
             </div>
 
@@ -238,6 +243,13 @@ export default function ETime({ searchQuery, notify }) {
                 </span>
                 <span className="stat-count">{workshopsCount}</span>
               </div>
+              <div className="stat-item">
+                <span className="stat-label-wrap">
+                  <span className="stat-dot" style={{ background: 'hsl(160, 60%, 70%)' }}></span>
+                  {t('type_workship')}
+                </span>
+                <span className="stat-count">{workshipsCount}</span>
+              </div>
             </div>
           </div>
 
@@ -278,7 +290,14 @@ export default function ETime({ searchQuery, notify }) {
                         {d && <div className="cal-date">{d}</div>}
                         <div className="day-events">
                           {d && filteredEvents
-                            .filter(ev => new Date(ev.start_time).getDate() === d)
+                            .filter(ev => {
+                              const evStart = new Date(ev.start_time);
+                              const evEnd = ev.end_time ? new Date(ev.end_time) : evStart;
+                              const dStart = new Date(evStart.getFullYear(), evStart.getMonth(), evStart.getDate());
+                              const dEnd = new Date(evEnd.getFullYear(), evEnd.getMonth(), evEnd.getDate());
+                              const dCell = new Date(year, month, d);
+                              return dCell >= dStart && dCell <= dEnd;
+                            })
                             .map(ev => {
                               const color = getEventColor(ev.type)
                               const pillBg = color.includes('hsl') ? color.replace('hsl', 'hsla').replace(')', ', 0.12)') : color
@@ -330,7 +349,13 @@ export default function ETime({ searchQuery, notify }) {
                     const eventColor = getEventColor(ev.type)
                     const startTimeStr = new Date(ev.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     const endTimeStr = ev.end_time ? new Date(ev.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
-                    const dateStr = new Date(ev.start_time).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                    
+                    const startD = new Date(ev.start_time)
+                    const endD = ev.end_time ? new Date(ev.end_time) : startD
+                    const isMultiDay = startD.toDateString() !== endD.toDateString()
+                    const dateStr = isMultiDay 
+                      ? `${startD.toLocaleDateString([], { month: 'short', day: 'numeric' })} - ${endD.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : startD.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
                     return (
                       <div key={ev.id} className="timeline-event-card" style={{ '--event-color': eventColor }}>
                         <div className="timeline-time-info">

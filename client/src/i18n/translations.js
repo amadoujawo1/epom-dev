@@ -293,6 +293,8 @@ const translations = {
     event_title_placeholder: 'e.g. Weekly Operations Briefing',
     event_type_label: 'Event Type',
     event_date_label: 'Date',
+    event_start_date_label: 'Start Date',
+    event_end_date_label: 'End Date',
     event_start_time: 'Start Time',
     event_end_time: 'End Time',
     event_recurrence: 'Recurrence',
@@ -317,6 +319,7 @@ const translations = {
     type_travel: 'Travel',
     type_training: 'Training',
     type_workshop: 'Workshop',
+    type_workship: 'Workship',
     type_other: 'Other',
 
     // ── Personnel ──
@@ -679,6 +682,8 @@ const translations = {
     event_title_placeholder: 'ex. Briefing hebdomadaire des opérations',
     event_type_label: "Type d'événement",
     event_date_label: 'Date',
+    event_start_date_label: 'Date de début',
+    event_end_date_label: 'Date de fin',
     event_start_time: 'Heure de début',
     event_end_time: 'Heure de fin',
     event_recurrence: 'Récurrence',
@@ -703,6 +708,7 @@ const translations = {
     type_travel: 'Déplacement',
     type_training: 'Formation',
     type_workshop: 'Atelier',
+    type_workship: 'Workship',
     type_other: 'Autre',
 
     // ── Personnel ──

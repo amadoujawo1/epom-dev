@@ -23,6 +23,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
     { value: 'travel',   label: t('type_travel'),   icon: '✈️' },
     { value: 'training', label: t('type_training'), icon: '🎓' },
     { value: 'workshop', label: t('type_workshop'), icon: '🛠️' },
+    { value: 'workship', label: t('type_workship'), icon: '⛪' },
     { value: 'other',    label: t('type_other'),    icon: '📅' },
   ];
 
@@ -34,7 +35,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
   ];
 
   const [form, setForm] = useState({
-    title: '', description: '', date: '', startTime: '', endTime: '',
+    title: '', description: '', date: '', endDate: '', startTime: '', endTime: '',
     type: 'meeting', recurrence: 'none', location: '',
     meeting_link: '', priority: 'Medium',
     mandatory_attendees: '', optional_attendees: '',
@@ -47,6 +48,7 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
       title: event?.title || '',
       description: event?.description || '',
       date: event?.start_time ? event.start_time.slice(0, 10) : '',
+      endDate: event?.end_time ? event.end_time.slice(0, 10) : '',
       startTime: event?.start_time ? event.start_time.slice(11, 16) : '',
       endTime: event?.end_time ? event.end_time.slice(11, 16) : '',
       type: event?.type || 'meeting',
@@ -69,11 +71,13 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.date || !form.startTime || !form.endTime) return;
+    const isMultiDayType = ['travel', 'training', 'other', 'workshop', 'workship'].includes(form.type);
+    const resolvedEndDate = isMultiDayType ? (form.endDate || form.date) : form.date;
     const payload = {
       title: form.title,
       description: form.description,
       start_time: `${form.date}T${form.startTime}:00`,
-      end_time: `${form.date}T${form.endTime}:00`,
+      end_time: `${resolvedEndDate}T${form.endTime}:00`,
       type: form.type,
       recurrence: form.recurrence,
       location: form.location,
@@ -146,28 +150,61 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('event_date_label')} <span className="req">*</span></label>
-                  <input type="date" name="date" value={form.date} onChange={handleChange} required />
-                </div>
-                <div className="form-group">
-                  <label>{t('priority')}</label>
-                  <div className="priority-pill-group">
-                    {PRIORITY_OPTIONS.map(p => (
-                      <button
-                        key={p.value}
-                        type="button"
-                        className={`priority-pill ${form.priority === p.value ? 'active' : ''}`}
-                        style={{ '--p-color': p.color }}
-                        onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
-                      >
-                        {t(p.labelKey)}
-                      </button>
-                    ))}
+              {['travel', 'training', 'other', 'workshop', 'workship'].includes(form.type) ? (
+                <>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>{t('event_start_date_label')} <span className="req">*</span></label>
+                      <input type="date" name="date" value={form.date} onChange={handleChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('event_end_date_label')} <span className="req">*</span></label>
+                      <input type="date" name="endDate" value={form.endDate || form.date} onChange={handleChange} required />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>{t('priority')}</label>
+                      <div className="priority-pill-group">
+                        {PRIORITY_OPTIONS.map(p => (
+                          <button
+                            key={p.value}
+                            type="button"
+                            className={`priority-pill ${form.priority === p.value ? 'active' : ''}`}
+                            style={{ '--p-color': p.color }}
+                            onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
+                          >
+                            {t(p.labelKey)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t('event_date_label')} <span className="req">*</span></label>
+                    <input type="date" name="date" value={form.date} onChange={handleChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('priority')}</label>
+                    <div className="priority-pill-group">
+                      {PRIORITY_OPTIONS.map(p => (
+                        <button
+                          key={p.value}
+                          type="button"
+                          className={`priority-pill ${form.priority === p.value ? 'active' : ''}`}
+                          style={{ '--p-color': p.color }}
+                          onClick={() => setForm(prev => ({ ...prev, priority: p.value }))}
+                        >
+                          {t(p.labelKey)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="form-row">
                 <div className="form-group">
