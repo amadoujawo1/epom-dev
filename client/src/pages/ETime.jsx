@@ -239,13 +239,7 @@ export default function ETime({ searchQuery, notify }) {
                 </span>
                 <span className="stat-count">{workshopsCount}</span>
               </div>
-              <div className="stat-item">
-                <span className="stat-label-wrap">
-                  <span className="stat-dot" style={{ background: 'hsl(160, 60%, 70%)' }}></span>
-                  {t('type_workship')}
-                </span>
-                <span className="stat-count">{workshipsCount}</span>
-              </div>
+
             </div>
           </div>
 
