@@ -204,7 +204,7 @@ export default function Login({ onLogin }) {
           )}
 
           {!mfaRequired ? (
-            <form onSubmit={submitLogin} className="login-form">
+            <form onSubmit={submitLogin} className="login-form" autoComplete="off">
               <div className="login-input-group">
                 <label className="login-label">{t('login_username')}</label>
                 <div className="login-input-container">
@@ -216,6 +216,7 @@ export default function Login({ onLogin }) {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={loading}
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -232,6 +233,7 @@ export default function Login({ onLogin }) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
+                    autoComplete="new-password"
                     required
                   />
                   <button
