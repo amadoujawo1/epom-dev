@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function DirectiveModal({ isOpen, onClose, onSave, submitting }) {
+export default function DirectiveModal({ isOpen, onClose, onSave, submitting, action }) {
   const { t } = useLanguage();
+  const [personnel, setPersonnel] = useState([]);
   
   const [form, setForm] = useState({
     title: '',
@@ -12,15 +13,36 @@ export default function DirectiveModal({ isOpen, onClose, onSave, submitting }) 
   });
 
   useEffect(() => {
+    // Fetch personnel
+    fetch('/api/personnel', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setPersonnel(data);
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
-      setForm({
-        title: '',
-        owner: '',
-        due: '',
-        priority: 'Medium'
-      });
+      if (action) {
+        setForm({
+          title: action.title || '',
+          owner: action.owner || '',
+          due: action.due || action.due_date ? new Date(action.due || action.due_date).toISOString().split('T')[0] : '',
+          priority: action.priority || 'Medium'
+        });
+      } else {
+        setForm({
+          title: '',
+          owner: '',
+          due: '',
+          priority: 'Medium'
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, action]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +73,7 @@ export default function DirectiveModal({ isOpen, onClose, onSave, submitting }) 
           <div className="modal-header-info">
             <div className="modal-header-icon">⚡</div>
             <div>
-              <div className="modal-title">{t('new_directive').toUpperCase()}</div>
+              <div className="modal-title">{action ? t('edit_directive') || 'EDIT DIRECTIVE' : t('new_directive').toUpperCase()}</div>
               <div className="modal-subtitle">{t('eaction_sub')}</div>
             </div>
           </div>
@@ -73,13 +95,18 @@ export default function DirectiveModal({ isOpen, onClose, onSave, submitting }) 
             </div>
 
             <div className="form-group">
-              <label>{t('owner')}</label>
-              <input
+              <label>{t('owner')} (Responsible Person)</label>
+              <select
                 name="owner"
-                placeholder={t('owner_placeholder')}
                 value={form.owner}
                 onChange={handleChange}
-              />
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)' }}
+              >
+                <option value="">-- {t('unassigned')} --</option>
+                {personnel.map(p => (
+                  <option key={p.id} value={p.username}>{p.name} ({p.username})</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-row">
@@ -114,7 +141,7 @@ export default function DirectiveModal({ isOpen, onClose, onSave, submitting }) 
           <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '20px' }}>
             <button type="button" className="btn btn-outline" onClick={onClose}>{t('cancel')}</button>
             <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? t('creating') : t('create_directive')}
+              {submitting ? t('saving') || 'Saving...' : (action ? t('save_changes') || 'Save Changes' : t('create_directive'))}
             </button>
           </div>
         </form>

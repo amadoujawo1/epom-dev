@@ -12,6 +12,7 @@ export default function EAction({ searchQuery, notify }) {
   const [reportData, setReportData] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [localSearch, setLocalSearch] = useState('')
+  const [editingAction, setEditingAction] = useState(null)
 
   // Current user info for access control
   const user = (() => {
@@ -57,15 +58,33 @@ export default function EAction({ searchQuery, notify }) {
 
   function handleSaveDirective(formData) {
     setSubmitting(true)
-    apiFetch('/api/actions', { method: 'POST', body: JSON.stringify(formData) })
-      .then(newA => {
-        setActions(prev => [newA, ...prev])
-        setShowForm(false)
-        refreshStats()
-        notify && notify(t('directive_created'), 'success')
-      })
-      .catch(() => notify && notify(t('failed_create'), 'error'))
-      .finally(() => setSubmitting(false))
+    if (editingAction) {
+      apiFetch(`/api/actions/${editingAction.id}`, { method: 'PUT', body: JSON.stringify(formData) })
+        .then(updated => {
+          setActions(prev => prev.map(x => x.id === updated.id ? updated : x))
+          setShowForm(false)
+          setEditingAction(null)
+          refreshStats()
+          notify && notify(t('directive_updated') || 'Directive updated', 'success')
+        })
+        .catch(() => notify && notify(t('failed_update') || 'Update failed', 'error'))
+        .finally(() => setSubmitting(false))
+    } else {
+      apiFetch('/api/actions', { method: 'POST', body: JSON.stringify(formData) })
+        .then(newA => {
+          setActions(prev => [newA, ...prev])
+          setShowForm(false)
+          refreshStats()
+          notify && notify(t('directive_created'), 'success')
+        })
+        .catch(() => notify && notify(t('failed_create'), 'error'))
+        .finally(() => setSubmitting(false))
+    }
+  }
+
+  function handleEditDirective(a) {
+    setEditingAction(a)
+    setShowForm(true)
   }
 
   function toggleStatus(a) {
@@ -141,7 +160,7 @@ export default function EAction({ searchQuery, notify }) {
             <div className="eaction-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button 
                 className="btn btn-primary new-directive-btn" 
-                onClick={() => setShowForm(true)}
+                onClick={() => { setEditingAction(null); setShowForm(true); }}
                 style={{ borderRadius: '12px', height: '48px', padding: '0 24px', fontWeight: 700, fontSize: 'var(--fs-xs)', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', boxShadow: '0 4px 14px rgba(88, 66, 255, 0.25)' }}
               >
                 <span style={{ fontSize: 'var(--fs-xl)' }}>+</span> <span className="btn-text-desktop">{t('new_directive').toUpperCase()}</span><span className="btn-text-mobile">{t('add_short') || 'ADD'}</span>
@@ -186,16 +205,47 @@ export default function EAction({ searchQuery, notify }) {
                   return (
                     <tr key={a.id} className="eaction-row action-row-hover" style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }}>
                       <td className="col-directives-projects" style={{ padding: '20px 32px' }}>
-                        <div className="directive-title" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)', marginBottom: '4px', textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.6 : 1 }}>{a.title}</div>
+                        <div className="directive-title" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-md)', marginBottom: '4px', textDecoration: isCompleted ? 'line-through' : 'none', opacity: isCompleted ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          {a.title}
+                          {a.priority && (
+                            <span style={{ 
+                              fontSize: '10px', 
+                              padding: '2px 6px', 
+                              borderRadius: '4px', 
+                              background: a.priority === 'Critical' ? '#fee2e2' : a.priority === 'High' ? '#fef3c7' : a.priority === 'Medium' ? '#f3e8ff' : '#f1f5f9',
+                              color: a.priority === 'Critical' ? '#ef4444' : a.priority === 'High' ? '#f59e0b' : a.priority === 'Medium' ? '#a855f7' : '#64748b',
+                              border: `1px solid ${a.priority === 'Critical' ? '#fca5a5' : a.priority === 'High' ? '#fcd34d' : a.priority === 'Medium' ? '#d8b4fe' : '#e2e8f0'}`,
+                              textTransform: 'uppercase',
+                              fontWeight: 800
+                            }}>
+                              {a.priority}
+                            </span>
+                          )}
+                        </div>
                         <div className="project-name" style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>{a.project_name || 'General Operations'}</div>
                       </td>
                       
                       <td className="col-ownership" style={{ padding: '20px 32px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div className="avatar" style={{ width: '28px', height: '28px', fontSize: 'var(--fs-2xs)', background: 'var(--primary-light)', color: 'var(--primary-main)' }}>{(a.owner || 'U').slice(0, 2).toUpperCase()}</div>
-                          <span className="owner-name" style={{ fontWeight: 600, color: '#334155', fontSize: 'var(--fs-sm)' }}>{a.owner || 'Unassigned'}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div className="avatar" style={{ width: '34px', height: '34px', fontSize: 'var(--fs-xs)', flexShrink: 0, background: 'var(--primary-light)', color: 'var(--primary-main)', fontWeight: 800 }}>
+                            {((a.assigned_first_name && a.assigned_last_name)
+                              ? `${a.assigned_first_name[0]}${a.assigned_last_name[0]}`
+                              : (a.owner || 'U').slice(0, 2)
+                            ).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="owner-name" style={{ fontWeight: 700, color: '#0f172a', fontSize: 'var(--fs-sm)', lineHeight: 1.3 }}>
+                              {(a.assigned_first_name && a.assigned_last_name)
+                                ? `${a.assigned_first_name} ${a.assigned_last_name}`
+                                : (a.owner || 'Unassigned')}
+                            </div>
+                            {a.owner && (
+                              <div style={{ fontSize: '11px', color: '#94a3b8' }}>@{a.owner}</div>
+                            )}
+                          </div>
                         </div>
                       </td>
+
 
                       <td className="col-timeline" style={{ padding: '20px 32px', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 500 }}>
                         <span className="mobile-label">{t('timeline')}: </span>
@@ -235,6 +285,23 @@ export default function EAction({ searchQuery, notify }) {
                           >
                             {isCompleted ? '↩️' : '✅'}
                           </button>
+                          <button 
+                            className="ctrl-btn" 
+                            onClick={() => canModify && handleEditDirective(a)} 
+                            title={!canModify ? t('unauthorized_complete') : (t('edit') || 'Edit')}
+                            disabled={!canModify}
+                            style={{ 
+                              border: '1px solid #dbeafe', 
+                              background: '#eff6ff',
+                              color: '#3b82f6',
+                              borderRadius: '8px', 
+                              padding: '6px',
+                              opacity: canModify ? 1 : 0.4,
+                              cursor: canModify ? 'pointer' : 'not-allowed'
+                            }}
+                          >
+                            ✏️
+                          </button>
                           {isAdmin && (
                             <button className="ctrl-btn" style={{ color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '8px', padding: '6px' }} onClick={() => deleteAction(a.id)}>
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -253,9 +320,10 @@ export default function EAction({ searchQuery, notify }) {
 
       <DirectiveModal 
         isOpen={showForm} 
-        onClose={() => setShowForm(false)} 
+        onClose={() => { setShowForm(false); setEditingAction(null); }} 
         onSave={handleSaveDirective}
         submitting={submitting}
+        action={editingAction}
       />
 
       {/* Exception Report Modal */}

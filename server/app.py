@@ -1565,6 +1565,8 @@ def create_app(test_config=None):
             return jsonify({"error": "Unauthorized: Only the assigned user or an Admin can modify this directive."}), 403
 
         data = request.json or {}
+        if 'title' in data and data['title']:
+            action.title = data['title'].strip()
         if 'status' in data:
             action.status = data['status']
         if 'project_id' in data:
@@ -1572,7 +1574,46 @@ def create_app(test_config=None):
             action.project_id = int(pid) if (pid and pid != "") else None
         if 'priority' in data:
             action.priority = data['priority']
-        if 'assigned_to' in data and data['assigned_to'] and current_user.role == 'Admin':
+        
+        # Handle due date update
+        if 'due' in data or 'due_date' in data:
+            from datetime import datetime, timezone as tz
+            raw_due = data.get('due') or data.get('due_date')
+            if raw_due and str(raw_due).strip():
+                try:
+                    raw_str = str(raw_due).strip()
+                    if 'T' in raw_str:
+                        action.due_date = datetime.fromisoformat(raw_str.replace('Z', '+00:00'))
+                    else:
+                        action.due_date = datetime.strptime(raw_str, '%Y-%m-%d').replace(tzinfo=tz.utc)
+                except Exception:
+                    pass
+            else:
+                action.due_date = None
+        
+        # Handle owner/responsible person update
+        if 'owner' in data and data['owner']:
+            owner_str = str(data['owner']).strip()
+            candidate = User.query.filter_by(username=owner_str).first()
+            if not candidate:
+                candidate = User.query.filter(
+                    (User.first_name == owner_str) | (User.last_name == owner_str)
+                ).first()
+            if candidate:
+                new_assignee_id = candidate.id
+                if new_assignee_id != action.assigned_to:
+                    action.assigned_to = new_assignee_id
+                    try:
+                        from models import Notification
+                        notif = Notification(
+                            user_id=new_assignee_id,
+                            message=f"Task assigned to you: {action.title}",
+                            link="/actions"
+                        )
+                        db.session.add(notif)
+                    except Exception:
+                        pass
+        elif 'assigned_to' in data and data['assigned_to'] and current_user.role == 'Admin':
             new_assignee = int(data['assigned_to'])
             if new_assignee != action.assigned_to:
                 action.assigned_to = new_assignee
@@ -1592,6 +1633,11 @@ def create_app(test_config=None):
             
         db.session.commit()
         assigned_user = db.session.get(User, action.assigned_to)
+        project_name = None
+        if action.project_id:
+            proj = db.session.get(Project, action.project_id)
+            if proj:
+                project_name = proj.name
         return jsonify({
             "id": action.id, 
             "title": action.title, 
@@ -1606,8 +1652,10 @@ def create_app(test_config=None):
             "assigned_first_name": assigned_user.first_name if assigned_user else None,
             "assigned_last_name": assigned_user.last_name if assigned_user else None,
             "document_id": action.document_id,
-            "project_id": action.project_id
+            "project_id": action.project_id,
+            "project_name": project_name
         }), 200
+
 
 
     @app.route('/api/notifications', methods=['GET'])
