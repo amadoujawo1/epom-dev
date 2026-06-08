@@ -104,6 +104,7 @@ export default function App() {
     setShowNotifPanel(false)
     setInactivityWarning(false)
     setToken(null)
+    setPage('dashboard')
     setLoginKey(prev => prev + 1)
   }
 
@@ -157,7 +158,7 @@ export default function App() {
       .catch(() => {})
   }
 
-  if (!token) return <Login key={loginKey} onLogin={() => setToken(localStorage.getItem('token'))} />
+  if (!token) return <Login key={loginKey} onLogin={() => { setToken(localStorage.getItem('token')); setPage('dashboard'); }} />
 
   const now = new Date()
   const dateStr = now.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {
