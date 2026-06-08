@@ -30,6 +30,7 @@ const WARN_BEFORE     = 30 * 1000          // warn 30s before logout
 export default function App() {
   const { t, lang, setLang } = useLanguage()
   const [token, setToken] = useState(localStorage.getItem('token'))
+  const [loginKey, setLoginKey] = useState(0)
   const [currentUser, setCurrentUser] = useState(loadStoredUser)
   const [showProfile, setShowProfile] = useState(false)
   const [stats, setStats] = useState(null)
@@ -103,6 +104,7 @@ export default function App() {
     setShowNotifPanel(false)
     setInactivityWarning(false)
     setToken(null)
+    setLoginKey(prev => prev + 1)
   }
 
   const resetInactivityTimer = useCallback(() => {
@@ -155,7 +157,7 @@ export default function App() {
       .catch(() => {})
   }
 
-  if (!token) return <Login onLogin={() => setToken(localStorage.getItem('token'))} />
+  if (!token) return <Login key={loginKey} onLogin={() => setToken(localStorage.getItem('token'))} />
 
   const now = new Date()
   const dateStr = now.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {

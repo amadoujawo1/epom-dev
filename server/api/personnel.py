@@ -23,9 +23,10 @@ def add_person():
     import bcrypt
     data = request.json or {}
     hire_date = None
-    if data.get('hireDate'):
+    hire_date_raw = data.get('hireDate')
+    if hire_date_raw:
         try:
-            hire_date = datetime.fromisoformat(data.get('hireDate').replace('Z', '+00:00'))
+            hire_date = datetime.fromisoformat(hire_date_raw.replace('Z', '+00:00'))
         except:
             hire_date = None
     
@@ -70,13 +71,15 @@ def update_person(person_id):
         p.role = data.get('role')
     if 'status' in data:
         p.status = data.get('status')
-    if 'password' in data and data.get('password'):
+    password = data.get('password')
+    if 'password' in data and password:
         import bcrypt
-        p.password_hash = bcrypt.hashpw(data.get('password').encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        p.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     if 'hireDate' in data:
-        if data.get('hireDate'):
+        hire_date_raw = data.get('hireDate')
+        if hire_date_raw:
             try:
-                p.hire_date = datetime.fromisoformat(data.get('hireDate').replace('Z', '+00:00'))
+                p.hire_date = datetime.fromisoformat(hire_date_raw.replace('Z', '+00:00'))
             except:
                 p.hire_date = None
         else:

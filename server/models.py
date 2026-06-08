@@ -98,6 +98,22 @@ class Document(db.Model):
     encryption_iv = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'file_path': self.file_path,
+            'status': self.status,
+            'category': self.category,
+            'uploaded_by': self.uploaded_by,
+            'doc_type': self.doc_type,
+            'content': self.content,
+            'is_encrypted': self.is_encrypted,
+            'encryption_iv': self.encryption_iv,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
 class Project(db.Model):
     __tablename__ = 'projects'
 
@@ -128,6 +144,22 @@ class Action(db.Model):
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'), nullable=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+            'priority': self.priority,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'due': self.due_date.strftime('%Y-%m-%d') if self.due_date else None,
+            'assigned_to': self.assigned_to,
+            'created_by': self.created_by,
+            'document_id': self.document_id,
+            'project_id': self.project_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
 
 class AttendanceRecord(db.Model):
     __tablename__ = 'attendance_records'

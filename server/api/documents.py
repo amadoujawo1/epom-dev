@@ -20,7 +20,7 @@ def list_documents():
         qs = qs.filter_by(category=category)
     if q:
         qs = qs.filter((Document.title.ilike(f"%{q}%")) | (Document.content.ilike(f"%{q}%")))
-    res = qs.order_by(Document.created.desc()).all()
+    res = qs.order_by(Document.created_at.desc()).all()
     return jsonify([d.to_dict() for d in res])
 
 

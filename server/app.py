@@ -312,7 +312,7 @@ def create_app(test_config=None):
     def health_check():
         try:
             # Ensure database tables exist (checkfirst=True prevents errors)
-            db.create_all(checkfirst=True)
+            db.create_all()
             print("[+] Health check: Database tables ensured")
             
             # Check if admin user exists (by username or email)
@@ -467,7 +467,7 @@ def create_app(test_config=None):
             
             # Also try create_all as backup
             print("[*] Creating tables with create_all...")
-            db.create_all(checkfirst=True)
+            db.create_all()
             print("[+] Tables created with create_all!")
             
             # Create admin user (check both username and email)
@@ -619,7 +619,7 @@ def create_app(test_config=None):
         try:
             # Ensure database tables exist (checkfirst=True prevents errors)
             try:
-                db.create_all(checkfirst=True)
+                db.create_all()
                 print("[+] Database tables ensured to exist")
             except Exception as db_error:
                 print(f"[!] Database table creation error: {db_error}")
@@ -1635,6 +1635,7 @@ def create_app(test_config=None):
         assigned_user = db.session.get(User, action.assigned_to)
         project_name = None
         if action.project_id:
+            from models import Project
             proj = db.session.get(Project, action.project_id)
             if proj:
                 project_name = proj.name

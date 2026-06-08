@@ -17,29 +17,50 @@ def list_actions():
     q = (request.args.get('q') or '').lower()
     qs = Action.query
     if q:
-        qs = qs.filter((Action.title.ilike(f"%{q}%")) | (Action.owner.ilike(f"%{q}%")))
+        qs = qs.filter(Action.title.ilike(f"%{q}%"))
     res = qs.order_by(Action.id.desc()).all()
     return jsonify([a.to_dict() for a in res])
 
 
 @actions_bp.route('/stats', methods=['GET'])
 def stats():
-    now = datetime.utcnow().date()
-    in_progress = Action.query.filter_by(status='in_progress').count()
-    completed = Action.query.filter_by(status='completed').count()
-    overdue = Action.query.filter(Action.due != None, Action.due < now, Action.status != 'completed').count()
-    due_this_week = Action.query.filter(Action.due != None, Action.due >= now, Action.due <= (now + timedelta(days=7))).count()
-    return jsonify({'in_progress': in_progress, 'completed': completed, 'overdue': overdue, 'due_this_week': due_this_week})
+    from datetime import timezone
+    now = datetime.now(timezone.utc).date()
+    in_progress = Action.query.filter_by(status='In Progress').count()
+    completed = Action.query.filter_by(status='Completed').count()
+    overdue = Action.query.filter(
+        Action.due_date != None,
+        Action.due_date < datetime.now(timezone.utc),
+        Action.status != 'Completed'
+    ).count()
+    due_this_week = Action.query.filter(
+        Action.due_date != None,
+        Action.due_date >= datetime.now(timezone.utc),
+        Action.due_date <= datetime.now(timezone.utc).replace(
+            hour=23, minute=59, second=59
+        )
+    ).count()
+    return jsonify({
+        'in_progress': in_progress,
+        'completed': completed,
+        'overdue': overdue,
+        'due_this_week': due_this_week
+    })
 
 
 @actions_bp.route('', methods=['POST'])
 def create_action():
     data = request.json or {}
-    a = Action(title=data.get('title'), owner=data.get('owner'), timeline=data.get('timeline'), status=data.get('status', 'pending'))
-    due = data.get('due')
+    a = Action(
+        title=data.get('title'),
+        assigned_to=data.get('assigned_to'),
+        status=data.get('status', 'Pending'),
+        priority=data.get('priority', 'Medium'),
+    )
+    due = data.get('due') or data.get('due_date')
     if due:
         try:
-            a.due = datetime.fromisoformat(due).date()
+            a.due_date = datetime.fromisoformat(due)
         except Exception:
             pass
     db.session.add(a)
@@ -55,11 +76,12 @@ def update_action(action_id):
         a.status = data['status']
     if 'title' in data:
         a.title = data['title']
-    if 'owner' in data:
-        a.owner = data['owner']
-    if 'due' in data:
+    if 'priority' in data:
+        a.priority = data['priority']
+    if 'due' in data or 'due_date' in data:
+        due = data.get('due') or data.get('due_date')
         try:
-            a.due = datetime.fromisoformat(data['due']).date()
+            a.due_date = datetime.fromisoformat(due) if due else None
         except Exception:
             pass
     db.session.commit()

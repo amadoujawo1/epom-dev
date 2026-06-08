@@ -16,7 +16,7 @@ def login():
     if username in _USERS and _USERS[username] == password:
         payload = {
             'sub': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
         }
         token = jwt.encode(payload, current_app.config.get('SECRET_KEY', 'devkey'), algorithm='HS256')
         return jsonify({'token': token})
