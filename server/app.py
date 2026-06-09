@@ -119,26 +119,31 @@ def create_app(test_config=None):
     if test_config:
         app.config.from_mapping(test_config)
 
-    # Database configuration - Support both Railway and local development
+    # Database configuration - Support both PostgreSQL and local SQLite development
     database_url = os.environ.get('DATABASE_URL')
+    is_production = os.environ.get('ENVIRONMENT') == 'production' or bool(os.environ.get('DATABASE_URL'))
+    
+    # Handle PostgreSQL URLs (convert postgres:// to postgresql://)
     if database_url and database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
+    # If no DATABASE_URL, use SQLite for local development
     if not database_url:
-        # Use absolute path for local SQLite to avoid "unable to open database file"
         basedir = os.path.abspath(os.path.dirname(__file__))
         db_path = os.path.join(basedir, 'instance', 'epom_dev.db')
-        # Ensure instance directory exists
         os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
         database_url = f"sqlite:///{db_path}"
+        print("[*] Using SQLite (local development mode)")
+    else:
+        # Validate DATABASE_URL for production
+        if not database_url or (isinstance(database_url, str) and "host" in database_url and "password" in database_url):
+            print("[ERROR] DATABASE_URL is invalid or contains placeholders!")
+            print("[ERROR] This will cause data loss on Render - your database will not persist!")
+            if is_production:
+                raise ValueError("Invalid DATABASE_URL - app cannot start in production without valid database connection")
+        print(f"[*] Using PostgreSQL database (production mode)")
     
-    # Validate DATABASE_URL format (fallback if environment variable has placeholders)
-    if database_url and "host" in database_url and "password" in database_url:
-        print("[!] DATABASE_URL contains placeholder values - using SQLite fallback")
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        db_path = os.path.join(basedir, 'instance', 'epom_dev.db')
-        database_url = f"sqlite:///{db_path}"
-    
-    print(f"[*] Database URL: {database_url}")
+    print(f"[*] Database URL: {database_url[:50]}..." if database_url else "[*] Database URL: Not set")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     
     # Configure CORS
@@ -199,6 +204,18 @@ def create_app(test_config=None):
         }), 401
 
     with app.app_context():
+        # Verify database connection
+        try:
+            print("[*] Verifying database connection...")
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                result = conn.execute(text("SELECT 1"))
+                print("[+] Database connection verified!")
+        except Exception as e:
+            print(f"[ERROR] Failed to connect to database: {str(e)}")
+            if is_production:
+                raise RuntimeError(f"Database connection failed in production: {str(e)}")
+        
         # Initialize database tables if they don't exist
         try:
             print("[*] Initializing database...")
@@ -267,11 +284,12 @@ def create_app(test_config=None):
             import traceback
             traceback.print_exc()
 
-    # Debugging: Log the database URL and static folder
-    print(f"Using database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    
+    # Debugging: Log the static folder
     if app.static_folder:
-        print(f"Static folder: {os.path.abspath(app.static_folder)}")
-        print(f"Static folder exists: {os.path.exists(app.static_folder)}")
+        print(f"[*] Static folder: {os.path.abspath(app.static_folder)}")
+        print(f"[*] Static folder exists: {os.path.exists(app.static_folder)}")
 
     @app.route('/api/stats', methods=['GET'])
     def overall_stats():
