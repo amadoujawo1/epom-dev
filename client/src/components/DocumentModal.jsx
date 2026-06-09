@@ -65,7 +65,7 @@ export default function DocumentModal({ isOpen, onClose, onSave, submitting, cat
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
+          <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '10px' }}>
             <div className="form-group">
               <label>{t('title')} <span className="req">*</span></label>
               <input
