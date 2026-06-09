@@ -13,6 +13,39 @@ function splitAttendees(str) {
   return str.split(',').map(s => s.trim()).filter(Boolean);
 }
 
+function calculateDuration(startTime, endTime) {
+  if (!startTime || !endTime) return null;
+  const [startHour, startMin] = startTime.split(':').map(Number);
+  const [endHour, endMin] = endTime.split(':').map(Number);
+  
+  const startTotalMin = startHour * 60 + startMin;
+  const endTotalMin = endHour * 60 + endMin;
+  const diffMin = endTotalMin - startTotalMin;
+  
+  if (diffMin < 0) return null;
+  if (diffMin === 0) return '0h';
+  
+  const hours = Math.floor(diffMin / 60);
+  const mins = diffMin % 60;
+  
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h${mins}m`;
+}
+
+function addMinutesToTime(timeStr, minutes) {
+  if (!timeStr) return '';
+  const [hour, min] = timeStr.split(':').map(Number);
+  let totalMin = hour * 60 + min + minutes;
+  
+  if (totalMin >= 24 * 60) totalMin = totalMin % (24 * 60);
+  
+  const newHour = Math.floor(totalMin / 60);
+  const newMin = totalMin % 60;
+  
+  return `${String(newHour).padStart(2, '0')}:${String(newMin).padStart(2, '0')}`;
+}
+
 export default function EventModal({ isOpen, onClose, onSave, event }) {
   const { t } = useLanguage();
   const isEdit = !!event;
@@ -65,6 +98,46 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleStartTimeChange = (e) => {
+    const startTime = e.target.value;
+    setForm(prev => {
+      const updated = { ...prev, startTime };
+      
+      // Auto-set end time based on meeting type
+      if (startTime && !prev.endTime) {
+        const meetingDuration = {
+          'meeting': 60,
+          'briefing': 30,
+          'workshop': 120,
+          'training': 120,
+          'travel': 0,
+          'other': 60
+        };
+        const duration = meetingDuration[prev.type] || 60;
+        updated.endTime = addMinutesToTime(startTime, duration);
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleEndTimeChange = (e) => {
+    let endTime = e.target.value;
+    
+    // Validate that end time is after start time
+    if (form.startTime && endTime) {
+      const startTotalMin = form.startTime.split(':').map(Number).reduce((h, m) => h * 60 + m);
+      const endTotalMin = endTime.split(':').map(Number).reduce((h, m) => h * 60 + m);
+      
+      if (endTotalMin <= startTotalMin) {
+        // Auto-advance to next valid time
+        endTime = addMinutesToTime(form.startTime, 30);
+      }
+    }
+    
+    setForm(prev => ({ ...prev, endTime }));
   };
 
   const handleSubmit = (e) => {
@@ -208,13 +281,51 @@ export default function EventModal({ isOpen, onClose, onSave, event }) {
               <div className="form-row">
                 <div className="form-group">
                   <label>{t('event_start_time')} <span className="req">*</span></label>
-                  <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
+                  <input 
+                    type="time" 
+                    name="startTime" 
+                    value={form.startTime} 
+                    onChange={handleStartTimeChange}
+                    required 
+                    style={{ fontWeight: '500', fontSize: '16px' }}
+                  />
                 </div>
                 <div className="form-group">
                   <label>{t('event_end_time')} <span className="req">*</span></label>
-                  <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
+                  <input 
+                    type="time" 
+                    name="endTime" 
+                    value={form.endTime} 
+                    onChange={handleEndTimeChange}
+                    required
+                    min={form.startTime}
+                    style={{ fontWeight: '500', fontSize: '16px' }}
+                  />
                 </div>
               </div>
+
+              {form.startTime && form.endTime && (
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '12px', 
+                  background: 'var(--bg-alt)',
+                  borderRadius: '6px',
+                  borderLeft: '3px solid var(--primary-color)',
+                  marginBottom: '16px'
+                }}>
+                  <span style={{ fontSize: '18px' }}>⏱️</span>
+                  <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>
+                    {form.startTime} → {form.endTime}
+                  </span>
+                  {calculateDuration(form.startTime, form.endTime) && (
+                    <span style={{ marginLeft: 'auto', fontWeight: '600', color: 'var(--primary-color)' }}>
+                      {calculateDuration(form.startTime, form.endTime)}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="form-group">
                 <label>{t('event_recurrence')}</label>
