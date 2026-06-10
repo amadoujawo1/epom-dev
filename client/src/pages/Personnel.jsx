@@ -424,12 +424,22 @@ export default function Personnel({ searchQuery, notify }) {
                     <div className="field-icon">🎖️</div>
                     <div className="field-inner">
                       <label className="field-label">{t('personnel_role_field_label')}</label>
-                      <input
+                      <select
                         className="field-input"
-                        placeholder={t('personnel_role_field_placeholder')}
                         value={form.role}
                         onChange={e => setForm({ ...form, role: e.target.value })}
-                      />
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <option value="">{t('personnel_role_field_placeholder') || 'Select Role'}</option>
+                        <option value="Admin">Admin</option>
+                        <option value="User">User</option>
+                        <option value="System Analyst">System Analyst</option>
+                        <option value="Assistant">Assistant</option>
+                        <option value="Minister">Minister</option>
+                        <option value="Chief of staff">Chief of staff</option>
+                        <option value="Advisor">Advisor</option>
+                        <option value="Protocol">Protocol</option>
+                      </select>
                     </div>
                   </div>
 
