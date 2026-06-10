@@ -431,14 +431,14 @@ export default function Personnel({ searchQuery, notify }) {
                         style={{ cursor: 'pointer' }}
                       >
                         <option value="">{t('personnel_role_field_placeholder') || 'Select Role'}</option>
-                        <option value="Admin">Admin</option>
-                        <option value="User">User</option>
-                        <option value="System Analyst">System Analyst</option>
-                        <option value="Assistant">Assistant</option>
-                        <option value="Minister">Minister</option>
-                        <option value="Chief of staff">Chief of staff</option>
-                        <option value="Advisor">Advisor</option>
-                        <option value="Protocol">Protocol</option>
+                        <option value="Admin">{t('role_admin') || 'Admin'}</option>
+                        <option value="User">{t('role_user') || 'User'}</option>
+                        <option value="System Analyst">{t('role_system_analyst') || 'System Analyst'}</option>
+                        <option value="Assistant">{t('role_assistant') || 'Assistant'}</option>
+                        <option value="Minister">{t('role_minister') || 'Minister'}</option>
+                        <option value="Chief of staff">{t('role_chief_of_staff') || 'Chief of staff'}</option>
+                        <option value="Advisor">{t('role_advisor') || 'Advisor'}</option>
+                        <option value="Protocol">{t('role_protocol') || 'Protocol'}</option>
                       </select>
                     </div>
                   </div>

@@ -385,6 +385,16 @@ const translations = {
     personnel_err_password_required: 'Password is required',
     personnel_err_password_short: 'Password must be at least 6 characters',
     personnel_err_passwords_mismatch: 'Passwords do not match',
+
+    // ── Roles ──
+    role_admin: 'Admin',
+    role_user: 'User',
+    role_system_analyst: 'System Analyst',
+    role_assistant: 'Assistant',
+    role_minister: 'Minister',
+    role_chief_of_staff: 'Chief of staff',
+    role_advisor: 'Advisor',
+    role_protocol: 'Protocol',
   },
 
   fr: {
@@ -773,6 +783,16 @@ const translations = {
     personnel_err_password_required: 'Le mot de passe est requis',
     personnel_err_password_short: 'Le mot de passe doit contenir au moins 6 caractères',
     personnel_err_passwords_mismatch: 'Les mots de passe ne correspondent pas',
+
+    // ── Roles ──
+    role_admin: 'Administrateur',
+    role_user: 'Utilisateur',
+    role_system_analyst: 'Analyste Système',
+    role_assistant: 'Assistant',
+    role_minister: 'Ministre',
+    role_chief_of_staff: 'Chef de cabinet',
+    role_advisor: 'Conseiller',
+    role_protocol: 'Protocole',
   },
 }
 
