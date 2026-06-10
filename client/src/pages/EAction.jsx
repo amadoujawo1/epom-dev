@@ -88,8 +88,13 @@ export default function EAction({ searchQuery, notify }) {
   }
 
   function toggleStatus(a) {
-    const nextStatus = (a.status === 'Completed' || a.status === 'completed') ? 'In Progress' : 'Completed'
-    apiFetch(`/api/actions/${a.id}`, { method: 'PUT', body: JSON.stringify({ status: nextStatus }) })
+    const statusCycle = {
+      'Pending': 'In Progress',
+      'In Progress': 'Completed',
+      'Completed': 'Pending'
+    }
+    const nextStatus = statusCycle[a.status] || 'Pending'
+    apiFetch(`/api/actions/${a.id}`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) })
       .then(updated => {
         setActions(prev => prev.map(x => x.id === a.id ? updated : x))
         refreshStats()
@@ -110,6 +115,7 @@ export default function EAction({ searchQuery, notify }) {
   }
 
   const STAT_CARDS = [
+    { labelKey: 'stat_pending', val: stats?.pending ?? 0, color: '#f59e0b', bg: '#fff', icon: '📋' },
     { labelKey: 'stat_in_progress', val: stats?.in_progress ?? 0, color: '#0f172a', bg: '#fff', icon: '⌛' },
     { labelKey: 'stat_overdue', val: stats?.overdue ?? 0, color: '#ef4444', bg: '#fff', icon: '🔥' },
     { labelKey: 'stat_due_week', val: stats?.due_this_week ?? 0, color: '#6366f1', bg: '#fff', icon: '🗓️' },
@@ -260,9 +266,9 @@ export default function EAction({ searchQuery, notify }) {
                           fontSize: 'var(--fs-xs)', 
                           fontWeight: 700, 
                           textTransform: 'uppercase',
-                          background: isCompleted ? '#ecfdf5' : '#fff7ed',
-                          color: isCompleted ? '#10b981' : '#f59e0b',
-                          border: `1px solid ${isCompleted ? '#d1fae5' : '#ffedd5'}`
+                          background: a.status === 'Completed' ? '#ecfdf5' : a.status === 'In Progress' ? '#fff7ed' : '#f3f4f6',
+                          color: a.status === 'Completed' ? '#10b981' : a.status === 'In Progress' ? '#f59e0b' : '#6b7280',
+                          border: `1px solid ${a.status === 'Completed' ? '#d1fae5' : a.status === 'In Progress' ? '#ffedd5' : '#e5e7eb'}`
                         }}>
                           {a.status}
                         </span>
@@ -273,7 +279,11 @@ export default function EAction({ searchQuery, notify }) {
                           <button 
                             className="ctrl-btn" 
                             onClick={() => canModify && toggleStatus(a)} 
-                            title={!canModify ? t('unauthorized_complete') : (isCompleted ? t('reopen') : t('complete'))}
+                            title={!canModify ? t('unauthorized_complete') : (
+                              a.status === 'Pending' ? 'Mark as In Progress' : 
+                              a.status === 'In Progress' ? 'Mark as Completed' : 
+                              'Move back to Pending'
+                            )}
                             disabled={!canModify}
                             style={{ 
                               border: '1px solid #e2e8f0', 
@@ -283,7 +293,7 @@ export default function EAction({ searchQuery, notify }) {
                               cursor: canModify ? 'pointer' : 'not-allowed'
                             }}
                           >
-                            {isCompleted ? '↩️' : '✅'}
+                            {a.status === 'Completed' ? '↩️' : a.status === 'In Progress' ? '✅' : '▶️'}
                           </button>
                           <button 
                             className="ctrl-btn" 

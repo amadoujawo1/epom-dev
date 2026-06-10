@@ -26,6 +26,7 @@ def list_actions():
 def stats():
     from datetime import timezone
     now = datetime.now(timezone.utc).date()
+    pending = Action.query.filter_by(status='Pending').count()
     in_progress = Action.query.filter_by(status='In Progress').count()
     completed = Action.query.filter_by(status='Completed').count()
     overdue = Action.query.filter(
@@ -41,6 +42,7 @@ def stats():
         )
     ).count()
     return jsonify({
+        'pending': pending,
         'in_progress': in_progress,
         'completed': completed,
         'overdue': overdue,
