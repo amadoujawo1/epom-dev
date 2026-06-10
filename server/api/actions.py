@@ -70,7 +70,7 @@ def create_action():
     return jsonify(a.to_dict()), 201
 
 
-@actions_bp.route('/<int:action_id>', methods=['PATCH'])
+@actions_bp.route('/<int:action_id>', methods=['PATCH', 'PUT'])
 def update_action(action_id):
     a = Action.query.get_or_404(action_id)
     data = request.json or {}

@@ -1568,7 +1568,7 @@ def create_app(test_config=None):
             print(f"DEBUG Error in create_action: {str(e)}")
             return jsonify({"error": f"Directive creation failure: {str(e)}"}), 500
 
-    @app.route('/api/actions/<int:action_id>', methods=['PUT'])
+    @app.route('/api/actions/<int:action_id>', methods=['PUT', 'PATCH'])
     @jwt_required()
     def update_action(action_id):
         current_user_id = int(get_jwt_identity())
