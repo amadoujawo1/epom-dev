@@ -705,13 +705,31 @@ def create_app(test_config=None):
                 return jsonify({"error": "This account has been deactivated. Contact Admin."}), 403
 
             if user.mfa_enabled:
-                # Generate a temporary OTP for this demo (in real app, send via email/SMS)
-                user.mfa_code = "123456" # Hardcoded for demo, normally os.urandom
+                if not user.mfa_secret:
+                    return jsonify({"error": "2FA is enabled but no secret found. Please re-setup 2FA."}), 500
+
+                # Generate a time-based OTP
+                totp = pyotp.TOTP(user.mfa_secret)
+                otp_code = totp.now() # Generate current OTP
+
+                user.mfa_code = otp_code # Store for verification
                 db.session.commit()
+
+                # Send OTP to user's email
+                if user.email:
+                    TacticalMailer.send(
+                        subject="e-POM: Your Two-Factor Authentication Code",
+                        recipient=user.email,
+                        body=f"Your 2FA code is: {otp_code}. This code is valid for a short period. Do not share it with anyone."
+                    )
+                    message = "MFA Challenge: Enter the 6-digit code sent to your registered email."
+                else:
+                    message = "MFA Challenge: Enter the 6-digit code from your authenticator app."
+
                 return jsonify({
                     "mfa_required": True,
                     "user_id": user.id,
-                    "message": "MFA Challenge: Enter the 6-digit code sent to your tactical device (Demo: 123456)"
+                    "message": message
                 }), 200
 
             access_token = create_access_token(identity=str(user.id))
