@@ -12,3 +12,4 @@ flask-jwt-extended
 bcrypt
 marked
 python-multipart
+pyotp

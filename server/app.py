@@ -3,41 +3,52 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity
 import bcrypt
 from datetime import datetime, timezone, timedelta
-from werkzeug.utils import secure_filename
+# Removed unused import - secure_filename is not currently used in the codebase
+# from werkzeug.utils import secure_filename
 import base64
+import pyotp
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 
 # Load environment variables
-load_dotenv()
+_ = load_dotenv()
 
 
 def _split_full_name(full_name):
-    parts = (full_name or '').strip().split(None, 1)
+    processed_name = str(full_name or '').strip()
+    parts = processed_name.split(None, 1)
     if not parts:
         return '', ''
-    return parts[0], parts[1] if len(parts) > 1 else ''
+    from typing import Tuple
+    return (parts[0], parts[1] if len(parts) > 1 else '')
 
 
-def _personnel_user_email(username, email=None):
+from typing import Union, Literal
+def _personnel_user_email(username: str, email: Union[str, None] = None) -> str:
     addr = (email or '').strip().lower()
     return addr if addr else f'{username}@epom.local'
 
 
-def _map_personnel_role(role):
+from typing import Literal, Union
+
+def _map_personnel_role(role: Union[str, None]) -> Union[str, Literal['Assistant']]:
     if not role or role == 'User':
         return 'Assistant'
     return role
 
 
-def _create_user_for_personnel(personnel, password_hash):
+from models import Personnel
+def _create_user_for_personnel(personnel: Personnel, password_hash: str):
     from models import User, db
 
-    email = _personnel_user_email(personnel.username, personnel.email)
+    email: str = _personnel_user_email(personnel.username, personnel.email)
     if User.query.filter_by(username=personnel.username).first():
         raise ValueError('Username already registered')
     if User.query.filter_by(email=email).first():
@@ -775,6 +786,115 @@ def create_app(test_config=None):
         }), 200
 
 
+    # --- 2FA Setup Endpoints ---
+    @app.route('/api/auth/2fa/generate-secret', methods=['POST'])
+    @jwt_required()
+    def generate_2fa_secret():
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, int(current_user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Generate a new secret key
+        secret = pyotp.random_base32()
+        user.mfa_secret = secret
+        db.session.commit()
+
+        # Generate provisioning URI for authenticator app
+        # Issuer name can be customized
+        provisioning_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+            name=user.email, issuer_name="e-POM"
+        )
+        
+        return jsonify({
+            "secret": secret,
+            "provisioning_uri": provisioning_uri
+        }), 200
+
+    @app.route('/api/auth/2fa/verify-setup', methods=['POST'])
+    @jwt_required()
+    def verify_2fa_setup():
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, int(current_user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        data = request.json or {}
+        otp_code = data.get('otp_code')
+
+        if not otp_code:
+            return jsonify({"error": "OTP code is required"}), 400
+        if not user.mfa_secret:
+            return jsonify({"error": "2FA not initiated for this user"}), 400
+
+        totp = pyotp.TOTP(user.mfa_secret)
+        if totp.verify(otp_code):
+            user.mfa_enabled = True
+            db.session.commit()
+            return jsonify({"message": "2FA successfully enabled"}), 200
+        else:
+            return jsonify({"error": "Invalid OTP code"}), 401
+
+    @app.route('/api/auth/2fa/disable', methods=['POST'])
+    @jwt_required()
+    def disable_2fa():
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, int(current_user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        data = request.json or {}
+        otp_code = data.get('otp_code')
+
+        if not otp_code:
+            return jsonify({"error": "OTP code is required"}), 400
+        if not user.mfa_enabled or not user.mfa_secret:
+            return jsonify({"error": "2FA is not enabled for this user"}), 400
+
+        totp = pyotp.TOTP(user.mfa_secret)
+        if totp.verify(otp_code):
+            user.mfa_enabled = False
+            user.mfa_secret = None  # Clear the secret for security
+            db.session.commit()
+            return jsonify({"message": "2FA successfully disabled"}), 200
+        else:
+            return jsonify({"error": "Invalid OTP code"}), 401
+
+    @app.route('/api/auth/2fa/regenerate-secret', methods=['POST'])
+    @jwt_required()
+    def regenerate_2fa_secret():
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, int(current_user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        data = request.json or {}
+        otp_code = data.get('otp_code')
+
+        if not otp_code:
+            return jsonify({"error": "OTP code is required"}), 400
+        if not user.mfa_enabled or not user.mfa_secret:
+            return jsonify({"error": "2FA is not enabled for this user"}), 400
+
+        totp = pyotp.TOTP(user.mfa_secret)
+        if totp.verify(otp_code):
+            new_secret = pyotp.random_base32()
+            user.mfa_secret = new_secret
+            user.mfa_enabled = False # User needs to re-verify with new secret
+            db.session.commit()
+
+            provisioning_uri = pyotp.totp.TOTP(new_secret).provisioning_uri(
+                name=user.email, issuer_name="e-POM"
+            )
+            return jsonify({
+                "message": "2FA secret regenerated. Please re-verify with your authenticator app.",
+                "secret": new_secret,
+                "provisioning_uri": provisioning_uri
+            }), 200
+        else:
+            return jsonify({"error": "Invalid OTP code"}), 401
+
+
     @app.route('/api/users', methods=['GET', 'POST'])
     @jwt_required()
     @role_required('Admin')
@@ -807,9 +927,7 @@ def create_app(test_config=None):
                 first_name=data['first_name'],
                 last_name=data['last_name'],
                 role=data['role'],
-                department=data.get('department', ''),
-                is_active=True,
-                must_change_password=False
+                department=data.get('department')
             )
             new_user.password_hash = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
