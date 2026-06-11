@@ -103,8 +103,6 @@ class Document(db.Model):
     is_encrypted = db.Column(db.Boolean, default=True)
     encryption_iv = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    versions = db.relationship('DocumentVersion', backref='document', lazy=True, cascade="all, delete-orphan")
-    tags = db.relationship('Tag', secondary=document_tags, backref=db.backref('documents', lazy='dynamic'))
 
     def to_dict(self):
         return {
@@ -118,8 +116,7 @@ class Document(db.Model):
             'content': self.content,
             'is_encrypted': self.is_encrypted,
             'encryption_iv': self.encryption_iv,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'tags': [tag.to_dict() for tag in self.tags]
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 
@@ -263,27 +260,4 @@ class Personnel(db.Model):
             "status": self.status,
             "hireDate": self.hire_date.isoformat() if self.hire_date else None,
             "created_at": self.created_at.isoformat()
-        }
-
-# Association table for Document and Tag
-document_tags = db.Table('document_tags',
-    db.Column('document_id', db.Integer, db.ForeignKey('documents.id'), primary_key=True),
-    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True)
-)
-
-class Tag(db.Model):
-    __tablename__ = 'tags'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "created_at": self.created_at.isoformat() if self.created_at else None
         }
