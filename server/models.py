@@ -3,6 +3,12 @@ from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
+# Association table for Document and Tag
+document_tags = db.Table('document_tags',
+    db.Column('document_id', db.Integer, db.ForeignKey('documents.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True)
+)
+
 class User(db.Model):
     __tablename__ = 'users'
 
