@@ -25,7 +25,7 @@ function getUserInitials(user) {
 }
 
 const INACTIVITY_TIMEOUT = 2 * 60 * 1000  // 2 minutes
-const WARN_BEFORE     = 30 * 1000          // warn 30s before logout
+const WARN_BEFORE = 30 * 1000          // warn 30s before logout
 
 export default function App() {
   const { t, lang, setLang } = useLanguage()
@@ -46,9 +46,9 @@ export default function App() {
   const [inactivityWarning, setInactivityWarning] = useState(false)
   const [countdown, setCountdown] = useState(30)
 
-  const inactivityTimer  = useRef(null)
-  const warningTimer     = useRef(null)
-  const countdownTimer   = useRef(null)
+  const inactivityTimer = useRef(null)
+  const warningTimer = useRef(null)
+  const countdownTimer = useRef(null)
 
   const notify = (message, type = 'info') => {
     const id = Date.now()
@@ -62,9 +62,9 @@ export default function App() {
   }, [isDarkMode])
 
   const fetchStats = () => {
-    apiFetch('/api/stats').then(setStats).catch(() => {})
-    apiFetch('/api/actions').then(data => setRecentActions((data || []).slice(0, 5))).catch(() => {})
-    apiFetch('/api/notifications').then(data => setUserNotifications(data || [])).catch(() => {})
+    apiFetch('/api/stats').then(setStats).catch(() => { })
+    apiFetch('/api/actions').then(data => setRecentActions((data || []).slice(0, 5))).catch(() => { })
+    apiFetch('/api/notifications').then(data => setUserNotifications(data || [])).catch(() => { })
     apiFetch('/api/calendar').then(data => {
       const now = new Date()
       const upcoming = (data || [])
@@ -72,7 +72,7 @@ export default function App() {
         .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
         .slice(0, 5)
       setUpcomingEvents(upcoming)
-    }).catch(() => {})
+    }).catch(() => { })
   }
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function App() {
     apiFetch('/api/auth/me').then(user => {
       setCurrentUser(user)
       localStorage.setItem('user', JSON.stringify(user))
-    }).catch(() => {})
+    }).catch(() => { })
     fetchStats()
   }, [token])
 
@@ -155,7 +155,7 @@ export default function App() {
       .then(() => {
         setUserNotifications(prev => prev.filter(n => n.id !== id))
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 
   if (!token) return <Login key={loginKey} onLogin={() => { setToken(localStorage.getItem('token')); setPage('dashboard'); }} />
@@ -172,27 +172,27 @@ export default function App() {
   const NAV_ITEMS = [
     {
       id: 'dashboard', label: t('nav_dashboard'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
     },
     {
       id: 'personnel', label: t('nav_personnel'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
     },
     {
       id: 'etime', label: t('nav_etime'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
     },
     {
       id: 'einfo', label: t('nav_einfo'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
     },
     {
       id: 'eaction', label: t('nav_eaction'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
     },
     {
       id: 'reports', label: t('nav_reports'),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
     },
   ]
 
@@ -309,7 +309,7 @@ export default function App() {
               title={t('sign_out')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </div>
           </div>
@@ -321,13 +321,13 @@ export default function App() {
         <header className="topbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             <div className="page-title">{PAGE_NAMES[page]}</div>
           </div>
           <div className="search-container">
             <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
               placeholder={t('search_placeholder')}
@@ -348,18 +348,18 @@ export default function App() {
             </button>
             <button className="ctrl-btn" onClick={() => setIsDarkMode(!isDarkMode)} title={t('toggle_theme')}>
               {isDarkMode
-                ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
+                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
               }
             </button>
             <div style={{ position: 'relative' }}>
               <button className="ctrl-btn" onClick={() => setShowNotifPanel(!showNotifPanel)} title={t('notifications')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
                 {userNotifications.filter(n => !n.is_read).length > 0 && <span className="notif-dot" />}
               </button>
-              
+
               {showNotifPanel && (
                 <div className="user-notif-panel">
                   <div className="user-notif-header">
@@ -372,13 +372,7 @@ export default function App() {
                     ) : (
                       userNotifications.map(n => (
                         <div key={n.id} className={`user-notif-item ${n.is_read ? 'read' : 'unread'}`} onClick={() => {
-                          if (n.link) { 
-                            let targetPage = n.link.replace('/', '').split('?')[0];
-                            if (targetPage === 'calendar') targetPage = 'etime';
-                            if (targetPage === 'actions') targetPage = 'eaction';
-                            setPage(targetPage); 
-                            setShowNotifPanel(false); 
-                          }
+                          if (n.link) { setPage(n.link.replace('/', '')); setShowNotifPanel(false); }
                           markRead(n.id);
                         }}>
                           <div className="user-notif-msg">{n.message}</div>
@@ -392,7 +386,7 @@ export default function App() {
             </div>
             <button className="ctrl-btn" onClick={() => setShowProfile(true)} title={t('profile')}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
               </svg>
             </button>
           </div>
@@ -418,7 +412,7 @@ export default function App() {
                   <div className="dashboard-date">{dateStr}</div>
                 </div>
                 <button className="btn btn-outline btn-sm" onClick={fetchStats}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
                   {t('refresh')}
                 </button>
               </div>
@@ -427,7 +421,7 @@ export default function App() {
               <div className="dashboard-summary">
                 <div className="summary-card" onClick={() => setPage('einfo')} style={{ cursor: 'pointer' }}>
                   <div className="summary-icon" style={{ background: '#fef3c7' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                   </div>
                   <div className="summary-info">
                     <span className="summary-label">{t('dash_documents')}</span>
@@ -436,7 +430,7 @@ export default function App() {
                 </div>
                 <div className="summary-card" onClick={() => setPage('personnel')} style={{ cursor: 'pointer' }}>
                   <div className="summary-icon" style={{ background: '#dbeafe' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                   </div>
                   <div className="summary-info">
                     <span className="summary-label">{t('dash_personnel')}</span>
@@ -445,7 +439,7 @@ export default function App() {
                 </div>
                 <div className="summary-card" onClick={() => setPage('eaction')} style={{ cursor: 'pointer' }}>
                   <div className="summary-icon" style={{ background: '#ffedd5' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
                   </div>
                   <div className="summary-info">
                     <span className="summary-label">{t('dash_active_actions')}</span>
@@ -454,7 +448,7 @@ export default function App() {
                 </div>
                 <div className="summary-card" onClick={() => setPage('etime')} style={{ cursor: 'pointer' }}>
                   <div className="summary-icon" style={{ background: '#f0fdf4' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
                   <div className="summary-info">
                     <span className="summary-label">{t('dash_events')}</span>
@@ -476,7 +470,7 @@ export default function App() {
                     <div className="insight-box" style={{ marginBottom: '12px' }}>{intelMessage}</div>
                   </div>
                   <div className="ai-status" style={{ background: 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.2)' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                     <div>
                       <div>{t('ai_filter_active')}</div>
                       <div style={{ fontSize: '11px', opacity: 0.75, fontWeight: 400, marginTop: '1px' }}>{aiMessage}</div>
@@ -562,102 +556,102 @@ export default function App() {
                   </div>
                 </div>
 
-              {/* Upcoming Events Table */}
-              <div className="dashboard-section">
-                <div className="section-header">
-                  <span className="section-label">{t('dash_upcoming_events')}</span>
-                  <button className="btn-text" onClick={() => setPage('etime')} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {t('dash_view_calendar')}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-                </div>
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div className="table-responsive">
-                    <table className="directive-table">
-                      <thead>
-                        <tr>
-                          <th style={{ paddingLeft: '24px' }}>{t('event')}</th>
-                          <th>{t('event_date_label')}</th>
-                          <th style={{ paddingRight: '24px' }}>{t('event_start_time')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {upcomingEvents.length > 0 ? (
-                          upcomingEvents.map(event => {
-                            const eventDate = new Date(event.start_time);
-                            const isToday = eventDate.toDateString() === new Date().toDateString();
-                            
-                            const getIcon = (type) => {
-                              if (type === 'meeting') return '🤝';
-                              if (type === 'briefing') return '📋';
-                              if (type === 'travel') return '✈️';
-                              return '🗓️';
-                            };
-
-                            return (
-                              <tr key={event.id} className="action-row-hover">
-                                <td style={{ padding: '16px 24px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ 
-                                      width: '32px', 
-                                      height: '32px', 
-                                      borderRadius: '8px', 
-                                      background: 'var(--primary-subtle)', 
-                                      display: 'flex', 
-                                      alignItems: 'center', 
-                                      justifyContent: 'center',
-                                      fontSize: '16px'
-                                    }}>
-                                      {getIcon(event.type)}
-                                    </div>
-                                    <div>
-                                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: 'var(--fs-md)' }}>
-                                        {event.title}
-                                        {event.priority === 'High' && <span style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--error)', background: 'var(--error-subtle)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800 }}>High</span>}
-                                      </div>
-                                      <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        {event.type || 'Event'}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td style={{ padding: '16px 0' }}>
-                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <span style={{ fontWeight: 600, color: isToday ? 'var(--primary)' : 'var(--text-sub)' }}>
-                                      {isToday ? 'Today' : eventDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td style={{ padding: '16px 24px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-main)' }}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--text-faint)' }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        ) : (
+                {/* Upcoming Events Table */}
+                <div className="dashboard-section">
+                  <div className="section-header">
+                    <span className="section-label">{t('dash_upcoming_events')}</span>
+                    <button className="btn-text" onClick={() => setPage('etime')} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {t('dash_view_calendar')}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                    </button>
+                  </div>
+                  <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div className="table-responsive">
+                      <table className="directive-table">
+                        <thead>
                           <tr>
-                            <td colSpan="3" style={{ padding: '60px 24px', textAlign: 'center' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ fontSize: '40px', opacity: 0.3 }}>🗓️</div>
-                                <div style={{ fontWeight: 700, color: 'var(--text-sub)', fontSize: 'var(--fs-lg)' }}>{t('dash_no_events')}</div>
-                                <div style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-sm)', maxWidth: '240px', margin: '0 auto' }}>
-                                  Your schedule is clear. Use the calendar to organize your tactical priorities.
-                                </div>
-                                <button className="btn btn-primary btn-sm" onClick={() => setPage('etime')} style={{ marginTop: '8px' }}>
-                                  {t('dash_view_calendar')}
-                                </button>
-                              </div>
-                            </td>
+                            <th style={{ paddingLeft: '24px' }}>{t('event')}</th>
+                            <th>{t('event_date_label')}</th>
+                            <th style={{ paddingRight: '24px' }}>{t('event_start_time')}</th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {upcomingEvents.length > 0 ? (
+                            upcomingEvents.map(event => {
+                              const eventDate = new Date(event.start_time);
+                              const isToday = eventDate.toDateString() === new Date().toDateString();
+
+                              const getIcon = (type) => {
+                                if (type === 'meeting') return '🤝';
+                                if (type === 'briefing') return '📋';
+                                if (type === 'travel') return '✈️';
+                                return '🗓️';
+                              };
+
+                              return (
+                                <tr key={event.id} className="action-row-hover">
+                                  <td style={{ padding: '16px 24px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                      <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '8px',
+                                        background: 'var(--primary-subtle)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '16px'
+                                      }}>
+                                        {getIcon(event.type)}
+                                      </div>
+                                      <div>
+                                        <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: 'var(--fs-md)' }}>
+                                          {event.title}
+                                          {event.priority === 'High' && <span style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--error)', background: 'var(--error-subtle)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800 }}>High</span>}
+                                        </div>
+                                        <div style={{ fontSize: 'var(--fs-2xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                          {event.type || 'Event'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '16px 0' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontWeight: 600, color: isToday ? 'var(--primary)' : 'var(--text-sub)' }}>
+                                        {isToday ? 'Today' : eventDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '16px 24px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-main)' }}>
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--text-faint)' }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                      {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan="3" style={{ padding: '60px 24px', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{ fontSize: '40px', opacity: 0.3 }}>🗓️</div>
+                                  <div style={{ fontWeight: 700, color: 'var(--text-sub)', fontSize: 'var(--fs-lg)' }}>{t('dash_no_events')}</div>
+                                  <div style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-sm)', maxWidth: '240px', margin: '0 auto' }}>
+                                    Your schedule is clear. Use the calendar to organize your tactical priorities.
+                                  </div>
+                                  <button className="btn btn-primary btn-sm" onClick={() => setPage('etime')} style={{ marginTop: '8px' }}>
+                                    {t('dash_view_calendar')}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
             </section>
           )}
@@ -722,4 +716,5 @@ function getGreetingKey() {
   if (h < 12) return 'greeting_morning'
   if (h < 18) return 'greeting_afternoon'
   return 'greeting_evening'
+}
 }
