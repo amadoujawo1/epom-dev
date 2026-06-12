@@ -372,7 +372,12 @@ export default function App() {
                     ) : (
                       userNotifications.map(n => (
                         <div key={n.id} className={`user-notif-item ${n.is_read ? 'read' : 'unread'}`} onClick={() => {
-                          if (n.link) { setPage(n.link.replace('/', '')); setShowNotifPanel(false); }
+                          if (n.link) { 
+                            let targetPage = n.link.replace('/', '').split('?')[0];
+                            if (targetPage === 'calendar') targetPage = 'etime';
+                            setPage(targetPage); 
+                            setShowNotifPanel(false); 
+                          }
                           markRead(n.id);
                         }}>
                           <div className="user-notif-msg">{n.message}</div>
