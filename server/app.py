@@ -1491,10 +1491,14 @@ def create_app(test_config=None):
     @app.route('/api/calendar/<int:event_id>', methods=['PUT'])
     @jwt_required()
     def update_event(event_id):
+        from models import User
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
         event = Event.query.get_or_404(event_id)
         
+        if not current_user:
+            return jsonify({"error": "Unauthorized: User not found"}), 401
+            
         if event.user_id != current_user_id and current_user.role != 'Admin':
             return jsonify({"error": "Unauthorized: Only the event owner or an admin can edit this event"}), 403
 
@@ -1576,10 +1580,14 @@ def create_app(test_config=None):
     @app.route('/api/calendar/<int:event_id>', methods=['DELETE'])
     @jwt_required()
     def delete_event(event_id):
+        from models import User
         current_user_id = int(get_jwt_identity())
         current_user = db.session.get(User, current_user_id)
         event = Event.query.get_or_404(event_id)
         
+        if not current_user:
+            return jsonify({"error": "Unauthorized: User not found"}), 401
+            
         if event.user_id != current_user_id and current_user.role != 'Admin':
             return jsonify({"error": "Unauthorized: Only the event owner or an admin can delete this event"}), 403
 

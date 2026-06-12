@@ -87,6 +87,9 @@ class Event(db.Model):
 class EventParticipant(db.Model):
     __tablename__ = 'event_participants'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -104,6 +107,9 @@ class EventParticipant(db.Model):
 
 class EventAudit(db.Model):
     __tablename__ = 'event_audits'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
