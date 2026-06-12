@@ -375,6 +375,7 @@ export default function App() {
                           if (n.link) { 
                             let targetPage = n.link.replace('/', '').split('?')[0];
                             if (targetPage === 'calendar') targetPage = 'etime';
+                            if (targetPage === 'actions') targetPage = 'eaction';
                             setPage(targetPage); 
                             setShowNotifPanel(false); 
                           }
