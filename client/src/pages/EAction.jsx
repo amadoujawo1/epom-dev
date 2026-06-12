@@ -125,15 +125,15 @@ export default function EAction({ searchQuery, notify }) {
   return (
     <div className="eaction-page">
       {/* Stats row */}
-      <div className="dashboard-summary" style={{ marginBottom: '24px' }}>
+      <div className="dashboard-summary" style={{ marginBottom: '16px' }}>
         {STAT_CARDS.map(({ labelKey, val, color, bg, icon }) => (
-          <div key={labelKey} className="summary-card" style={{ background: bg, boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: 'none', padding: '24px' }}>
-            <div className="summary-icon" style={{ background: 'transparent', fontSize: '24px' }}>
+          <div key={labelKey} className="summary-card" style={{ background: bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="summary-icon" style={{ background: 'transparent', fontSize: '20px', width: 'auto', height: 'auto', display: 'flex' }}>
               <span>{icon}</span>
             </div>
-            <div className="summary-info">
-              <span className="summary-label" style={{ fontSize: 'var(--fs-xs)', letterSpacing: '0.8px', color: '#94a3b8' }}>{t(labelKey).toUpperCase()}</span>
-              <div className="summary-val" style={{ color: '#0f172a', fontSize: 'var(--fs-4xl)', fontWeight: 800 }}>{val}</div>
+            <div className="summary-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span className="summary-label" style={{ fontSize: '10px', letterSpacing: '0.5px', color: '#94a3b8', fontWeight: 700 }}>{t(labelKey).toUpperCase()}</span>
+              <div className="summary-val" style={{ color: '#0f172a', fontSize: '20px', fontWeight: 800, lineHeight: 1 }}>{val}</div>
             </div>
           </div>
         ))}
