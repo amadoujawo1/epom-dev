@@ -717,4 +717,3 @@ function getGreetingKey() {
   if (h < 18) return 'greeting_afternoon'
   return 'greeting_evening'
 }
-}
