@@ -167,6 +167,22 @@ def create_app(test_config=None):
     db.init_app(app)
     jwt = JWTManager(app)
 
+    # Initialize Scheduler for Reminders
+    from apscheduler.schedulers.background import BackgroundScheduler
+    scheduler = BackgroundScheduler()
+    
+    def check_reminders():
+        with app.app_context():
+            from models import Event, Notification, EventParticipant, db
+            from datetime import datetime, timezone, timedelta
+            now = datetime.now(timezone.utc)
+            # Find events starting in the next 15 minutes, 1 hour, or 24 hours.
+            # (Note: In a production app, a 'reminders_sent' tracking table or column should be used to prevent duplicates)
+            pass
+            
+    scheduler.add_job(func=check_reminders, trigger="interval", minutes=15)
+    scheduler.start()
+
     # Custom JWT Error Handlers to help debug mobile 422 errors
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
@@ -1351,33 +1367,51 @@ def create_app(test_config=None):
     @app.route('/api/calendar', methods=['GET'])
     @jwt_required()
     def get_events():
+        from models import EventParticipant, User
         events = Event.query.all()
-        return jsonify([{
-            "id": e.id, "title": e.title, "description": e.description,
-            "start_time": e.start_time.isoformat(), "end_time": e.end_time.isoformat(),
-            "priority": e.priority,
-            "type": e.type or 'meeting',
-            "recurrence": e.recurrence or 'none',
-            "mandatory_attendees": e.mandatory_attendees,
-            "optional_attendees": e.optional_attendees,
-            "location": e.location,
-            "meeting_link": e.meeting_link,
-            "resource_id": e.resource_id,
-            "is_protected": e.is_protected,
-            "is_strategic": e.is_strategic
-        } for e in events]), 200
+        result = []
+        for e in events:
+            participants = []
+            if hasattr(EventParticipant, 'query'):
+                for p in EventParticipant.query.filter_by(event_id=e.id).all():
+                    u = User.query.get(p.user_id)
+                    participants.append({
+                        "user_id": p.user_id,
+                        "name": f"{u.first_name} {u.last_name}" if u else "Unknown",
+                        "role": p.role,
+                        "status": p.response_status
+                    })
+            
+            result.append({
+                "id": e.id, "title": e.title, "description": e.description,
+                "start_time": e.start_time.isoformat(), "end_time": e.end_time.isoformat(),
+                "priority": e.priority,
+                "type": e.type or 'meeting',
+                "recurrence": e.recurrence or 'none',
+                "recurrence_rule": getattr(e, 'recurrence_rule', None),
+                "parent_id": getattr(e, 'parent_id', None),
+                "mandatory_attendees": e.mandatory_attendees,
+                "optional_attendees": e.optional_attendees,
+                "location": e.location,
+                "meeting_link": e.meeting_link,
+                "resource_id": e.resource_id,
+                "is_protected": e.is_protected,
+                "is_strategic": e.is_strategic,
+                "user_id": e.user_id,
+                "participants": participants
+            })
+        return jsonify(result), 200
 
     @app.route('/api/calendar', methods=['POST'])
     @jwt_required()
     def create_event():
         data = request.json
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         try:
             start_time = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
             end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
             
             # SMART SCHEDULING: Check for conflicts
-            # If resource_id is provided, check for conflicts on that resource
             resource_id = data.get('resource_id')
             if resource_id and resource_id != "":
                 resource_id = int(resource_id)
@@ -1386,11 +1420,36 @@ def create_app(test_config=None):
                     (Event.start_time < end_time) & (Event.end_time > start_time)
                 ).first()
                 if resource_conflict:
-                    return jsonify({"error": f"Resource Conflict: This room/resource is already booked for '{resource_conflict.title}'"}), 400
+                    return jsonify({"error": f"Resource Conflict: This room/resource is already booked for '{resource_conflict.title}'"}), 409
             else:
                 resource_id = None
 
             import json
+            from models import EventParticipant, EventAudit, Notification, User
+            
+            # Map attendee strings to user IDs
+            mand_strings = data.get('mandatory_attendees', [])
+            opt_strings = data.get('optional_attendees', [])
+            
+            def resolve_user_ids(names_or_emails):
+                if not names_or_emails: return []
+                users = User.query.filter(db.or_(User.username.in_(names_or_emails), User.email.in_(names_or_emails))).all()
+                return [u.id for u in users]
+                
+            mandatory_user_ids = resolve_user_ids(mand_strings)
+            optional_user_ids = resolve_user_ids(opt_strings)
+
+            # User conflict detection
+            if mandatory_user_ids:
+                user_conflicts = db.session.query(Event).join(EventParticipant).filter(
+                    EventParticipant.user_id.in_(mandatory_user_ids),
+                    EventParticipant.response_status.in_(['Accepted', 'Pending']),
+                    Event.start_time < end_time,
+                    Event.end_time > start_time
+                ).first()
+                if user_conflicts:
+                    return jsonify({"error": "Participant Conflict: One or more mandatory participants are already booked during this time."}), 409
+
             new_event = Event(
                 title=data['title'],
                 description=data.get('description', ''),
@@ -1399,9 +1458,10 @@ def create_app(test_config=None):
                 priority=data.get('priority', 'Medium'),
                 type=data.get('type', 'meeting'),
                 recurrence=data.get('recurrence', 'none'),
-                user_id=int(current_user_id),
-                mandatory_attendees=json.dumps(data.get('mandatory_attendees', [])),
-                optional_attendees=json.dumps(data.get('optional_attendees', [])),
+                recurrence_rule=data.get('recurrence_rule', None),
+                user_id=current_user_id,
+                mandatory_attendees=json.dumps(mand_strings),
+                optional_attendees=json.dumps(opt_strings),
                 resource_id=resource_id,
                 location=data.get('location', ''),
                 meeting_link=data.get('meeting_link', ''),
@@ -1409,26 +1469,55 @@ def create_app(test_config=None):
                 is_strategic=data.get('is_strategic', False)
             )
             db.session.add(new_event)
+            db.session.flush() # get new_event.id
+            
+            # Add participants
+            for uid in mandatory_user_ids:
+                db.session.add(EventParticipant(event_id=new_event.id, user_id=uid, role='Mandatory', response_status='Pending'))
+                db.session.add(Notification(user_id=uid, message=f"You have been invited to {new_event.title}"))
+                
+            for uid in data.get('optional_user_ids', []):
+                db.session.add(EventParticipant(event_id=new_event.id, user_id=uid, role='Optional', response_status='Pending'))
+                db.session.add(Notification(user_id=uid, message=f"You have an optional invite to {new_event.title}"))
+
+            # Audit Trail
+            db.session.add(EventAudit(event_id=new_event.id, user_id=current_user_id, action="Created", details=json.dumps({"title": new_event.title})))
+
             db.session.commit()
-            return jsonify({"message": "Event created"}), 201
+            return jsonify({"message": "Event created", "id": new_event.id}), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 400
 
     @app.route('/api/calendar/<int:event_id>', methods=['PUT'])
     @jwt_required()
     def update_event(event_id):
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
         event = Event.query.get_or_404(event_id)
+        
+        if event.user_id != current_user_id and current_user.role != 'Admin':
+            return jsonify({"error": "Unauthorized: Only the event owner or an admin can edit this event"}), 403
+
         data = request.json
         try:
             import json as _json
-            if 'title' in data:
+            from models import EventAudit, Notification, EventParticipant
+            changes = {}
+            if 'title' in data and event.title != data['title']:
+                changes['title'] = data['title']
                 event.title = data['title']
             if 'description' in data:
                 event.description = data['description']
             if 'start_time' in data:
-                event.start_time = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
+                new_start = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
+                if event.start_time != new_start:
+                    changes['start_time'] = new_start.isoformat()
+                    event.start_time = new_start
             if 'end_time' in data:
-                event.end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
+                new_end = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
+                if event.end_time != new_end:
+                    changes['end_time'] = new_end.isoformat()
+                    event.end_time = new_end
             if 'priority' in data:
                 event.priority = data['priority']
             if 'type' in data:
@@ -1447,6 +1536,38 @@ def create_app(test_config=None):
                 event.is_protected = data['is_protected']
             if 'is_strategic' in data:
                 event.is_strategic = data['is_strategic']
+                
+            # Sync participants
+            if 'mandatory_attendees' in data or 'optional_attendees' in data:
+                from models import User
+                mand_strings = data.get('mandatory_attendees', [])
+                opt_strings = data.get('optional_attendees', [])
+                
+                def resolve_user_ids(names_or_emails):
+                    if not names_or_emails: return []
+                    users = User.query.filter(db.or_(User.username.in_(names_or_emails), User.email.in_(names_or_emails))).all()
+                    return [u.id for u in users]
+                    
+                new_mand_ids = resolve_user_ids(mand_strings)
+                new_opt_ids = resolve_user_ids(opt_strings)
+                
+                # Delete old
+                EventParticipant.query.filter_by(event_id=event.id).delete()
+                
+                # Insert new
+                for uid in new_mand_ids:
+                    db.session.add(EventParticipant(event_id=event.id, user_id=uid, role='Mandatory', response_status='Pending'))
+                for uid in new_opt_ids:
+                    db.session.add(EventParticipant(event_id=event.id, user_id=uid, role='Optional', response_status='Pending'))
+            # Audit Trail
+            db.session.add(EventAudit(event_id=event.id, user_id=current_user_id, action="Updated", details=_json.dumps(changes)))
+
+            # Notify participants of changes
+            if changes:
+                participants = EventParticipant.query.filter_by(event_id=event.id).all()
+                for p in participants:
+                    db.session.add(Notification(user_id=p.user_id, message=f"Meeting '{event.title}' was updated."))
+
             db.session.commit()
             return jsonify({"message": "Event updated successfully"}), 200
         except Exception as e:
@@ -1455,10 +1576,47 @@ def create_app(test_config=None):
     @app.route('/api/calendar/<int:event_id>', methods=['DELETE'])
     @jwt_required()
     def delete_event(event_id):
+        current_user_id = int(get_jwt_identity())
+        current_user = db.session.get(User, current_user_id)
         event = Event.query.get_or_404(event_id)
-        db.session.delete(event)
+        
+        if event.user_id != current_user_id and current_user.role != 'Admin':
+            return jsonify({"error": "Unauthorized: Only the event owner or an admin can delete this event"}), 403
+
+        try:
+            import json
+            from models import EventAudit, Notification, EventParticipant
+            participants = EventParticipant.query.filter_by(event_id=event.id).all()
+            for p in participants:
+                db.session.add(Notification(user_id=p.user_id, message=f"Meeting '{event.title}' was cancelled."))
+
+            db.session.add(EventAudit(event_id=event.id, user_id=current_user_id, action="Cancelled", details=json.dumps({"title": event.title})))
+            
+            # Delete participants first (foreign key constraint)
+            EventParticipant.query.filter_by(event_id=event.id).delete()
+            db.session.delete(event)
+            db.session.commit()
+            return jsonify({"message": "Event deleted successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+    @app.route('/api/calendar/<int:event_id>/rsvp', methods=['POST'])
+    @jwt_required()
+    def rsvp_event(event_id):
+        current_user_id = int(get_jwt_identity())
+        data = request.json
+        status = data.get('status')
+        if status not in ['Accepted', 'Declined', 'Tentative']:
+            return jsonify({"error": "Invalid RSVP status"}), 400
+            
+        from models import EventParticipant
+        participant = EventParticipant.query.filter_by(event_id=event_id, user_id=current_user_id).first()
+        if not participant:
+            return jsonify({"error": "You are not a participant in this event"}), 404
+            
+        participant.response_status = status
         db.session.commit()
-        return jsonify({"message": "Event deleted successfully"}), 200
+        return jsonify({"message": "RSVP updated"}), 200
 
 
     # --- ACTIONS ROUTES ---

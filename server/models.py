@@ -57,6 +57,8 @@ class Event(db.Model):
     location = db.Column(db.String(255), nullable=True)
     type = db.Column(db.String(50), default='meeting')  # meeting, briefing, travel, etc.
     recurrence = db.Column(db.String(50), nullable=True)  # e.g., daily, weekly, monthly
+    recurrence_rule = db.Column(db.String(255), nullable=True) # e.g. RRULE string
+    parent_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     meeting_link = db.Column(db.String(255), nullable=True)
     is_protected = db.Column(db.Boolean, default=False)
     is_strategic = db.Column(db.Boolean, default=False)
@@ -75,9 +77,49 @@ class Event(db.Model):
             "location": self.location,
             "meeting_link": self.meeting_link,
             "recurrence": self.recurrence,
+            "recurrence_rule": self.recurrence_rule,
+            "parent_id": self.parent_id,
             "is_protected": self.is_protected,
             "is_strategic": self.is_strategic,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class EventParticipant(db.Model):
+    __tablename__ = 'event_participants'
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    role = db.Column(db.String(50), default='Optional') # Mandatory, Optional
+    response_status = db.Column(db.String(50), default='Pending') # Pending, Accepted, Declined, Tentative
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "event_id": self.event_id,
+            "user_id": self.user_id,
+            "role": self.role,
+            "response_status": self.response_status
+        }
+
+class EventAudit(db.Model):
+    __tablename__ = 'event_audits'
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False) # Created, Updated, Cancelled
+    details = db.Column(db.Text, nullable=True) # JSON details of changes
+    timestamp = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "event_id": self.event_id,
+            "user_id": self.user_id,
+            "action": self.action,
+            "details": self.details,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None
         }
 
 class Document(db.Model):
