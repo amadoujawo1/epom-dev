@@ -113,7 +113,7 @@ const translations = {
 
     // ── Login ──
     login_welcome: 'Welcome Back',
-    login_welcome_sub: 'Access the tactical administrative network',
+    login_welcome_sub: '',
     login_mfa_title: 'Security Verification',
     login_mfa_sub: 'Enter the authorization code sent to your device',
     login_username: 'Username',
@@ -511,7 +511,7 @@ const translations = {
 
     // ── Login ──
     login_welcome: 'Bon retour',
-    login_welcome_sub: 'Accédez au réseau administratif tactique',
+    login_welcome_sub: '',
     login_mfa_title: 'Vérification de sécurité',
     login_mfa_sub: "Entrez le code d'autorisation envoyé à votre appareil",
     login_username: "Nom d'utilisateur",
